@@ -45,22 +45,23 @@ export default function AdminTeachersPage() {
     if (!value) return teachers;
 
     return teachers.filter((teacher) => {
-      const fullName = `${teacher.Fullname ?? teacher.FullName ?? ""}`.toLowerCase();
-      const email = (teacher.Email ?? "").toLowerCase();
-      const department = (teacher.Department ?? "").toLowerCase();
+      const fullName = `${teacher.Fullname ?? teacher.FullName ?? teacher.fullname ?? ""}`.toLowerCase();
+      const email = (teacher.Email ?? teacher.email ?? "").toLowerCase();
+      const department = (teacher.Department ?? teacher.department ?? "").toLowerCase();
       return fullName.includes(value) || email.includes(value) || department.includes(value);
     });
   }, [query, teachers]);
 
   const handleDelete = async (teacher: Teacher) => {
-    if (!teacher.Id) return;
+    const id = teacher.Id ?? teacher.id ?? teacher.teacher_id;
+    if (!id) return;
     const confirmed = window.confirm(
-      `This will remove ${teacher.Fullname ?? teacher.FullName ?? "this teacher"}. The action may be a soft delete. Continue?`,
+      `This will remove ${teacher.Fullname ?? teacher.FullName ?? teacher.fullname ?? "this teacher"}. The action may be a soft delete. Continue?`,
     );
     if (!confirmed) return;
 
     try {
-      await deleteTeacher(teacher.Id);
+      await deleteTeacher(id);
       notify("success", "Teacher deleted", "The teacher record was removed successfully.");
       loadTeachers();
     } catch (error) {
@@ -70,9 +71,10 @@ export default function AdminTeachersPage() {
   };
 
   const handleRestore = async (teacher: Teacher) => {
-    if (!teacher.Id) return;
+    const id = teacher.Id ?? teacher.id ?? teacher.teacher_id;
+    if (!id) return;
     try {
-      await restoreTeacher(teacher.Id);
+      await restoreTeacher(id);
       notify("success", "Teacher restored", "The teacher has been restored.");
       loadTeachers();
     } catch (error) {
@@ -82,12 +84,13 @@ export default function AdminTeachersPage() {
   };
 
   const handlePromote = async (teacher: Teacher) => {
-    if (!teacher.Id) return;
-    const confirmed = window.confirm(`Promote ${teacher.Fullname ?? teacher.FullName ?? "this teacher"} to HOD?`);
+    const id = teacher.Id ?? teacher.id ?? teacher.teacher_id;
+    if (!id) return;
+    const confirmed = window.confirm(`Promote ${teacher.Fullname ?? teacher.FullName ?? teacher.fullname ?? "this teacher"} to HOD?`);
     if (!confirmed) return;
 
     try {
-      await promoteTeacher(teacher.Id);
+      await promoteTeacher(id);
       notify("success", "Teacher promoted", "Teacher was promoted to HOD.");
       loadTeachers();
     } catch (error) {
@@ -97,12 +100,13 @@ export default function AdminTeachersPage() {
   };
 
   const handleDemote = async (teacher: Teacher) => {
-    if (!teacher.Id) return;
-    const confirmed = window.confirm(`Demote ${teacher.Fullname ?? teacher.FullName ?? "this teacher"} from HOD back to Teacher?`);
+    const id = teacher.Id ?? teacher.id ?? teacher.teacher_id;
+    if (!id) return;
+    const confirmed = window.confirm(`Demote ${teacher.Fullname ?? teacher.FullName ?? teacher.fullname ?? "this teacher"} from HOD back to Teacher?`);
     if (!confirmed) return;
 
     try {
-      await demoteTeacher(teacher.Id);
+      await demoteTeacher(id);
       notify("success", "Teacher demoted", "The teacher role was updated.");
       loadTeachers();
     } catch (error) {
@@ -156,30 +160,30 @@ export default function AdminTeachersPage() {
               </thead>
               <tbody>
                 {filteredTeachers.map((teacher) => (
-                  <tr key={teacher.Id ?? `${teacher.Email}-${teacher.Fullname ?? teacher.FullName}`} className="border-b border-white/5">
+                  <tr key={teacher.Id ?? teacher.id ?? teacher.teacher_id ?? `${teacher.Email}-${teacher.Fullname ?? teacher.FullName ?? teacher.fullname}`} className="border-b border-white/5">
                     <td className="px-3 py-3">
-                      <div className="font-medium">{teacher.Fullname ?? teacher.FullName ?? "Unknown"}</div>
+                      <div className="font-medium">{teacher.Fullname ?? teacher.FullName ?? teacher.fullname ?? "Unknown"}</div>
                     </td>
-                    <td className="px-3 py-3 text-[#d4d4d4]">{teacher.Email ?? "Not provided"}</td>
-                    <td className="px-3 py-3 text-[#d4d4d4]">{teacher.Department ?? "Not provided"}</td>
+                    <td className="px-3 py-3 text-[#d4d4d4]">{teacher.Email ?? teacher.email ?? "Not provided"}</td>
+                    <td className="px-3 py-3 text-[#d4d4d4]">{teacher.Department ?? teacher.department ?? "Not provided"}</td>
                     <td className="px-3 py-3">
-                      <Badge tone={teacher.Active ?? teacher.IsActive ? "success" : "warning"}>
-                        {teacher.Active ?? teacher.IsActive ? "Active" : "Inactive"}
+                      <Badge tone={teacher.Active ?? teacher.IsActive ?? teacher.isActive ? "success" : "warning"}>
+                        {teacher.Active ?? teacher.IsActive ?? teacher.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </td>
                     <td className="px-3 py-3 text-[#d4d4d4]">{formatDate(teacher.HireDate ?? undefined)}</td>
                     <td className="px-3 py-3">
                       <div className="flex flex-wrap gap-2">
-                        <button type="button" onClick={() => router.push(`/admin/teachers/${teacher.Id}`)} className="text-[#FF6B35] underline underline-offset-4">
+                          <button type="button" onClick={() => router.push(`/admin/teachers/${teacher.Id ?? teacher.id ?? teacher.teacher_id}`)} className="text-[#FF6B35] underline underline-offset-4">
                           View
                         </button>
-                        <button type="button" onClick={() => router.push(`/admin/teachers/${teacher.Id}/edit`)} className="text-[#d4d4d4] underline underline-offset-4">
+                          <button type="button" onClick={() => router.push(`/admin/teachers/${teacher.Id ?? teacher.id ?? teacher.teacher_id}/edit`)} className="text-[#d4d4d4] underline underline-offset-4">
                           Edit
                         </button>
                         <button type="button" onClick={() => handleDelete(teacher)} className="text-red-300 underline underline-offset-4">
                           Delete
                         </button>
-                        {(teacher.Active ?? teacher.IsActive) ? (
+                        {(teacher.Active ?? teacher.IsActive ?? teacher.isActive) ? (
                           <button type="button" onClick={() => handlePromote(teacher)} className="text-[#7dd3fc] underline underline-offset-4">
                             Promote
                           </button>

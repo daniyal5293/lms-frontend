@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { AppShell } from "@/src/components/layout/AppShell";
 import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
@@ -24,8 +24,10 @@ const initialState = {
   Qualification: "",
 };
 
-export default function EditTeacherPage({ params }: { params: { id: string } }) {
+export default function EditTeacherPage() {
   const router = useRouter();
+  const routeParams = useParams<{ id: string }>();
+  const teacherId = routeParams.id;
   const { notify } = useNotifications();
   const [form, setForm] = useState(initialState);
   const [loading, setLoading] = useState(true);
@@ -34,18 +36,18 @@ export default function EditTeacherPage({ params }: { params: { id: string } }) 
   useEffect(() => {
     const load = async () => {
       try {
-        const teacher = await getTeacherById(params.id);
+        const teacher = await getTeacherById(teacherId);
         setForm({
-          Fullname: teacher.Fullname ?? teacher.FullName ?? "",
-          Email: teacher.Email ?? "",
-          Address: teacher.Address ?? "",
-          Department: teacher.Department ?? "",
-          Salary: teacher.Salary ? String(teacher.Salary) : "",
-          CNIC: teacher.CNIC ?? "",
-          DateOfBirth: teacher.DateOfBirth ? teacher.DateOfBirth.slice(0, 10) : "",
-          HireDate: teacher.HireDate ? teacher.HireDate.slice(0, 10) : "",
-          IdentificationNumber: teacher.IdentificationNumber ?? "",
-          Qualification: teacher.Qualification ?? "",
+          Fullname: teacher.Fullname ?? teacher.FullName ?? teacher.fullname ?? "",
+          Email: teacher.Email ?? teacher.email ?? "",
+          Address: teacher.Address ?? teacher.address ?? "",
+          Department: teacher.Department ?? teacher.department ?? "",
+          Salary: teacher.Salary ?? teacher.salary ? String(teacher.Salary ?? teacher.salary) : "",
+          CNIC: teacher.CNIC ?? teacher.cnic ?? "",
+          DateOfBirth: teacher.DateOfBirth ?? teacher.dateOfBirth ? (teacher.DateOfBirth ?? teacher.dateOfBirth ?? "").slice(0, 10) : "",
+          HireDate: teacher.HireDate ?? teacher.hireDate ? (teacher.HireDate ?? teacher.hireDate ?? "").slice(0, 10) : "",
+          IdentificationNumber: teacher.IdentificationNumber ?? teacher.identificationNumber ?? "",
+          Qualification: teacher.Qualification ?? teacher.qualification ?? "",
         });
       } catch (error) {
         const message = error instanceof ApiError ? error.message : "Unable to load teacher details.";
@@ -56,7 +58,7 @@ export default function EditTeacherPage({ params }: { params: { id: string } }) 
     };
 
     load();
-  }, [notify, params.id]);
+  }, [notify, teacherId]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -64,11 +66,20 @@ export default function EditTeacherPage({ params }: { params: { id: string } }) 
 
     try {
       await updateTeacher({
-        ...form,
-        Salary: Number(form.Salary),
+        teacher_id: teacherId,
+        email: form.Email.trim(),
+        fullName: form.Fullname.trim(),
+        cnic: form.CNIC.trim(),
+        qualification: form.Qualification.trim(),
+        identificationNumber: form.IdentificationNumber.trim(),
+        department: form.Department.trim(),
+        dateOfBirth: `${form.DateOfBirth}T00:00:00`,
+        hireDate: `${form.HireDate}T00:00:00`,
+        address: form.Address.trim(),
+        salary: Number(form.Salary),
       });
       notify("success", "Teacher updated", "The teacher record was updated successfully.");
-      router.push(`/admin/teachers/${params.id}`);
+      router.push(`/admin/teachers/${teacherId}`);
     } catch (error) {
       const message = error instanceof ApiError ? error.message : "Unable to update teacher.";
       notify("error", "Update failed", message);

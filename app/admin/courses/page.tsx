@@ -13,6 +13,8 @@ import { listCourses, deleteCourse } from "@/src/lib/api/courses.api";
 import { ApiError } from "@/src/lib/api/client";
 import type { Course } from "@/src/lib/types";
 
+const getCourseId = (course: Course) => course.Id ?? course.id ?? course.courseId ?? course.course_id ?? "";
+
 export default function AdminCoursesPage() {
   const router = useRouter();
   const { notify } = useNotifications();
@@ -48,8 +50,8 @@ export default function AdminCoursesPage() {
   }, [courses, query]);
 
   const handleDelete = async (course: Course) => {
-    if (!course.Id && !course.id) return;
-    const id = course.Id ?? course.id ?? "";
+    const id = getCourseId(course);
+    if (!id) return;
     const confirmed = window.confirm(`Delete ${course.Name}? This action cannot be undone.`);
     if (!confirmed) return;
 
@@ -103,15 +105,15 @@ export default function AdminCoursesPage() {
               </thead>
               <tbody>
                 {filteredCourses.map((course) => (
-                  <tr key={course.Id ?? course.id ?? course.Code} className="border-b border-white/5 align-top">
+                  <tr key={getCourseId(course) || course.Code} className="border-b border-white/5 align-top">
                     <td className="px-3 py-3 font-medium text-white">{course.Code}</td>
                     <td className="px-3 py-3 text-[#d4d4d4]">{course.Name}</td>
                     <td className="px-3 py-3 text-[#d4d4d4]">{course.Credits}</td>
                     <td className="px-3 py-3 text-[#d4d4d4] max-w-md">{course.Description ?? "No description provided."}</td>
                     <td className="px-3 py-3">
                       <div className="flex flex-wrap gap-2">
-                        <button type="button" onClick={() => router.push(`/admin/courses/${course.Id ?? course.id}`)} className="text-[#FF6B35] underline underline-offset-4">View</button>
-                        <button type="button" onClick={() => router.push(`/admin/courses/${course.Id ?? course.id}/edit`)} className="text-[#d4d4d4] underline underline-offset-4">Edit</button>
+                        <button type="button" disabled={!getCourseId(course)} onClick={() => router.push(`/admin/courses/${getCourseId(course)}`)} className="text-[#FF6B35] underline underline-offset-4 disabled:cursor-not-allowed disabled:opacity-50">View</button>
+                        <button type="button" disabled={!getCourseId(course)} onClick={() => router.push(`/admin/courses/${getCourseId(course)}/edit`)} className="text-[#d4d4d4] underline underline-offset-4 disabled:cursor-not-allowed disabled:opacity-50">Edit</button>
                         <button type="button" onClick={() => handleDelete(course)} className="text-red-300 underline underline-offset-4">Delete</button>
                       </div>
                     </td>

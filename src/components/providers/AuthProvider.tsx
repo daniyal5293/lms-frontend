@@ -24,9 +24,16 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => getStoredUser() ?? null);
-  const [accessToken, setAccessToken] = useState<string | null>(() => getStoredAccessToken() ?? null);
-  const [isReady] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setUser(getStoredUser() ?? null);
+    setAccessToken(getStoredAccessToken() ?? null);
+    setIsReady(true);
+  }, []);
 
   useEffect(() => {
     if (accessToken && user) {

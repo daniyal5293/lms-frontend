@@ -71,6 +71,11 @@ function normalizeError(status: number, payload: unknown, fallback: string) {
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getStoredAccessToken();
+  const isLoginRequest = path === "/api/auth/login";
+  const isRegisterRequest = path === "/api/auth/register";
+  const isLogoutRequest = path === "/api/auth/logout";
+  const shouldAttachToken = !isLoginRequest && !isRegisterRequest;
+  const shouldRefreshOnUnauthorized = !isLoginRequest && !isRegisterRequest && !isLogoutRequest;
 
   const headers = new Headers(options.headers ?? {});
   headers.set("Accept", "application/json");
@@ -79,7 +84,7 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
     headers.set("Content-Type", "application/json");
   }
 
-  if (token && !headers.has("Authorization")) {
+  if (token && shouldAttachToken && !headers.has("Authorization")) {
     headers.set("Authorization", `Bearer ${token}`);
   }
 
@@ -91,7 +96,7 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
 
   let response = await fetch(buildApiUrl(path), requestInit);
 
-  if (response.status === 401 && !headers.has("X-Refresh-Attempt")) {
+  if (response.status === 401 && shouldRefreshOnUnauthorized && !headers.has("X-Refresh-Attempt")) {
     try {
       await refreshAccessToken();
       const retryHeaders = new Headers(headers);
@@ -112,7 +117,7 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
 
   if (!response.ok) {
     const message =
-      response.status === 401
+      response.status === 401 && shouldRefreshOnUnauthorized
         ? "Your session expired. Please sign in again."
         : response.status === 403
           ? "You do not have permission to perform this action."
@@ -130,6 +135,27 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
   }
 
   return payload as T;
+}
+
+export async function apiDownload(path: string) {
+  const token = getStoredAccessToken();
+  const headers = new Headers({ Accept: "application/octet-stream" });
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+
+  const response = await fetch(buildApiUrl(path), {
+    method: "GET",
+    headers,
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new ApiError("Unable to export students.", response.status);
+  }
+
+  return {
+    blob: await response.blob(),
+    filename: response.headers.get("content-disposition")?.match(/filename\*?=(?:UTF-8''|\"?)([^\";]+)/i)?.[1] ?? "students.xlsx",
+  };
 }
 
 export async function refreshAccessToken() {

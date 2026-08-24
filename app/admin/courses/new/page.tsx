@@ -12,10 +12,9 @@ import { createCourse } from "@/src/lib/api/courses.api";
 import { ApiError } from "@/src/lib/api/client";
 
 const initialState = {
-  Name: "",
-  Code: "",
-  Credits: "",
-  Description: "",
+  CourseName: "",
+  CourseDescription: "",
+  CourseDuration: ""
 };
 
 export default function NewCoursePage() {
@@ -27,8 +26,8 @@ export default function NewCoursePage() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!form.Name.trim() || !form.Code.trim() || !form.Credits) {
-      notify("error", "Validation failed", "Course name, code, and credits are required.");
+    if (!form.CourseName.trim() || !form.CourseDuration.trim() || Number(form.CourseDuration) <= 0) {
+      notify("error", "Validation failed", "Course name and duration are required.");
       return;
     }
 
@@ -36,10 +35,9 @@ export default function NewCoursePage() {
 
     try {
       await createCourse({
-        Name: form.Name,
-        Code: form.Code,
-        Credits: Number(form.Credits),
-        Description: form.Description,
+        courseName: form.CourseName.trim(),
+        courseDescription: form.CourseDescription.trim(),
+        courseDuration: Number(form.CourseDuration),
       });
       notify("success", "Course created", "The course was added successfully.");
       router.push("/admin/courses");
@@ -58,12 +56,21 @@ export default function NewCoursePage() {
       <Card>
         <form className="space-y-6" onSubmit={handleSubmit} noValidate>
           <div className="grid gap-5 md:grid-cols-2">
-            <Input label="Course name" value={form.Name} onChange={(event) => setForm((current) => ({ ...current, Name: event.target.value }))} />
-            <Input label="Course code" value={form.Code} onChange={(event) => setForm((current) => ({ ...current, Code: event.target.value }))} />
-            <Input label="Credits" type="number" value={form.Credits} onChange={(event) => setForm((current) => ({ ...current, Credits: event.target.value }))} />
+            <Input label="Course name" value={form.CourseName} onChange={(event) => setForm((current) => ({ ...current, CourseName: event.target.value }))} />
+            <Input label="Duration" value={form.CourseDuration} onChange={(event) => setForm((current) => ({ ...current, CourseDuration: event.target.value }))} />
             <div className="md:col-span-2">
-              <Input label="Description" value={form.Description} onChange={(event) => setForm((current) => ({ ...current, Description: event.target.value }))} />
-            </div>
+              <label className="block w-full text-sm text-white" htmlFor="course-description">
+                <span className="mb-2 block text-[#d4d4d4]">Description</span>
+                <textarea
+                  id="course-description"
+                  value={form.CourseDescription}
+                  onChange={(event) => setForm((current) => ({ ...current, CourseDescription: event.target.value }))}
+                  rows={5}
+                  placeholder="Describe the course content and learning outcomes"
+                  className="w-full rounded-xl border border-white/10 bg-[#1a1a1a] px-3 py-2.5 text-white placeholder:text-[#888888] focus:border-[#FF6B35] focus:outline-none"
+                />
+              </label>
+            </div>    
           </div>
 
           <div className="flex justify-end gap-3">

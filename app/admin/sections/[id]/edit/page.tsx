@@ -1,42 +1,41 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { AppShell } from "@/src/components/layout/AppShell";
 import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
 import { Input } from "@/src/components/ui/Input";
 import { PageHeader } from "@/src/components/ui/PageHeader";
-import { Select } from "@/src/components/ui/Select";
 import { useNotifications } from "@/src/components/providers/NotificationProvider";
-import { listCourses } from "@/src/lib/api/courses.api";
 import { getSectionById, updateSection } from "@/src/lib/api/sections.api";
 import { ApiError } from "@/src/lib/api/client";
-import type { Course } from "@/src/lib/types";
 
 const initialState = {
-  Name: "",
-  CourseId: "",
-  Capacity: "",
+  sectionName: "",
+  IntermediateClass: "",
+  StartDate: "",
+  IsActive: false,
 };
 
-export default function EditSectionPage({ params }: { params: { id: string } }) {
+export default function EditSectionPage() {
   const router = useRouter();
+  const routeParams = useParams<{ id: string }>();
+  const sectionId = routeParams.id;
   const { notify } = useNotifications();
   const [form, setForm] = useState(initialState);
-  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [section, courseData] = await Promise.all([getSectionById(params.id), listCourses()]);
-        setCourses(courseData);
+        const section = await getSectionById(sectionId);
         setForm({
-          Name: section.Name ?? "",
-          CourseId: section.CourseId ?? "",
-          Capacity: String(section.Capacity ?? ""),
+          sectionName: section.Name ?? section.sectionName ?? "",
+          IntermediateClass: section.IntermediateClass ?? section.intermediateClass ?? "",
+          StartDate: (section.StartDate ?? section.startDate ?? "").slice(0, 16),
+          IsActive: section.IsActive ?? section.isActive ?? false,
         });
       } catch (error) {
         const message = error instanceof ApiError ? error.message : "Unable to load section.";
@@ -47,19 +46,20 @@ export default function EditSectionPage({ params }: { params: { id: string } }) 
     };
 
     load();
-  }, [notify, params.id]);
+  }, [notify, sectionId]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitting(true);
     try {
-      await updateSection(params.id, {
-        Name: form.Name,
-        CourseId: form.CourseId,
-        Capacity: Number(form.Capacity),
+      await updateSection(sectionId, {
+        sectionName: form.sectionName.trim(),
+        IntermediateClass: form.IntermediateClass.trim(),
+        StartDate: `${form.StartDate}:00`,
+        IsActive: form.IsActive,
       });
       notify("success", "Section updated", "The section was saved successfully.");
-      router.push(`/admin/sections/${params.id}`);
+      router.push(`/admin/sections/${sectionId}`);
     } catch (error) {
       const message = error instanceof ApiError ? error.message : "Unable to update section.";
       notify("error", "Update failed", message);
@@ -72,21 +72,15 @@ export default function EditSectionPage({ params }: { params: { id: string } }) 
 
   return (
     <AppShell>
-      <PageHeader title="Edit Section" description="Update the section name, course assignment, and capacity." />
+      <PageHeader title="Edit Section" description="Update the section name, class level, start date, and status." />
 
       <Card>
         <form className="space-y-6" onSubmit={handleSubmit} noValidate>
           <div className="grid gap-5 md:grid-cols-2">
-            <Input label="Section name" value={form.Name} onChange={(event) => setForm((current) => ({ ...current, Name: event.target.value }))} />
-            <Select label="Course" value={form.CourseId} onChange={(event) => setForm((current) => ({ ...current, CourseId: event.target.value }))}>
-              <option value="">Select a course</option>
-              {courses.map((course) => (
-                <option key={course.Id ?? course.id ?? course.Code} value={course.Id ?? course.id ?? course.Code}>
-                  {course.Name} ({course.Code})
-                </option>
-              ))}
-            </Select>
-            <Input label="Capacity" type="number" value={form.Capacity} onChange={(event) => setForm((current) => ({ ...current, Capacity: event.target.value }))} />
+            <Input label="Section name" value={form.sectionName} onChange={(event) => setForm((current) => ({ ...current, sectionName: event.target.value }))} />
+            <Input label="Intermediate class" value={form.IntermediateClass} onChange={(event) => setForm((current) => ({ ...current, IntermediateClass: event.target.value }))} />
+            <Input label="Start date" type="datetime-local" value={form.StartDate} onChange={(event) => setForm((current) => ({ ...current, StartDate: event.target.value }))} />
+            <label className="flex items-center gap-3 text-sm text-[#d4d4d4]"><input type="checkbox" checked={form.IsActive} onChange={(event) => setForm((current) => ({ ...current, IsActive: event.target.checked }))} />Active section</label>
           </div>
 
           <div className="flex justify-end gap-3">

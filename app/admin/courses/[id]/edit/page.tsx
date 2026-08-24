@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { AppShell } from "@/src/components/layout/AppShell";
 import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
@@ -18,8 +18,10 @@ const initialState = {
   Description: "",
 };
 
-export default function EditCoursePage({ params }: { params: { id: string } }) {
+export default function EditCoursePage() {
   const router = useRouter();
+  const routeParams = useParams<{ id: string }>();
+  const courseId = routeParams.id;
   const { notify } = useNotifications();
   const [form, setForm] = useState(initialState);
   const [loading, setLoading] = useState(true);
@@ -28,7 +30,7 @@ export default function EditCoursePage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const load = async () => {
       try {
-        const course = await getCourseById(params.id);
+        const course = await getCourseById(courseId);
         setForm({
           Name: course.Name ?? "",
           Code: course.Code ?? "",
@@ -44,20 +46,19 @@ export default function EditCoursePage({ params }: { params: { id: string } }) {
     };
 
     load();
-  }, [notify, params.id]);
+  }, [notify, courseId]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitting(true);
     try {
-      await updateCourse(params.id, {
-        Name: form.Name,
-        Code: form.Code,
-        Credits: Number(form.Credits),
-        Description: form.Description,
+      await updateCourse(courseId, {
+        courseName: form.Name.trim(),
+        courseDescription: form.Description.trim(),
+        courseDuration: Number(form.Credits),
       });
       notify("success", "Course updated", "The course information was saved.");
-      router.push(`/admin/courses/${params.id}`);
+      router.push(`/admin/courses/${courseId}`);
     } catch (error) {
       const message = error instanceof ApiError ? error.message : "Unable to update course.";
       notify("error", "Update failed", message);

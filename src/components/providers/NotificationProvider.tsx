@@ -33,7 +33,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     setItems((current) => [...current, { id, type, title, message }]);
     window.setTimeout(() => {
       setItems((current) => current.filter((item) => item.id !== id));
-    }, 4000);
+    }, 2000);
   }, []);
 
   const dismiss = useCallback((id: number) => {

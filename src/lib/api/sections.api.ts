@@ -1,12 +1,33 @@
 import { apiFetch } from "@/src/lib/api/client";
 import type { Section } from "@/src/lib/types";
 
+type RawSection = Section & {
+  sectionId?: string;
+  sectionName?: string;
+  intermediateClass?: string;
+  startDate?: string;
+  isActive?: boolean;
+};
+
+function normalizeSection(section: RawSection): Section {
+  return {
+    ...section,
+    Id: section.Id ?? section.id ?? section.sectionId ?? section.section_id,
+    Name: section.Name ?? section.sectionName ?? "Unnamed section",
+    IntermediateClass: section.IntermediateClass ?? section.intermediateClass,
+    StartDate: section.StartDate ?? section.startDate,
+    IsActive: section.IsActive ?? section.isActive,
+  };
+}
+
 export async function listSections() {
-  return apiFetch<Section[]>("/api/sections");
+  const sections = await apiFetch<RawSection[]>("/api/sections");
+  return sections.map(normalizeSection);
 }
 
 export async function getSectionById(id: string) {
-  return apiFetch<Section>(`/api/sections/${id}`);
+  const section = await apiFetch<RawSection>(`/api/sections/${id}`);
+  return normalizeSection(section);
 }
 
 export async function createSection(payload: Record<string, unknown>) {

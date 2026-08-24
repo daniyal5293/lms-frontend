@@ -1,12 +1,31 @@
 import { apiFetch } from "@/src/lib/api/client";
 import type { Course } from "@/src/lib/types";
 
+type RawCourse = Course & {
+  courseId?: string;
+  courseName?: string;
+  courseDescription?: string | null;
+  courseDuration?: number;
+};
+
+function normalizeCourse(course: RawCourse): Course {
+  return {
+    ...course,
+    Id: course.Id ?? course.id ?? course.courseId ?? course.course_id,
+    Name: course.Name ?? course.courseName ?? "Unnamed course",
+    Description: course.Description ?? course.courseDescription,
+    Credits: course.Credits ?? course.courseDuration ?? 0,
+  };
+}
+
 export async function listCourses() {
-  return apiFetch<Course[]>("/api/courses");
+  const courses = await apiFetch<RawCourse[]>("/api/courses");
+  return courses.map(normalizeCourse);
 }
 
 export async function getCourseById(id: string) {
-  return apiFetch<Course>(`/api/courses/${id}`);
+  const course = await apiFetch<RawCourse>(`/api/courses/${id}`);
+  return normalizeCourse(course);
 }
 
 export async function createCourse(payload: Record<string, unknown>) {

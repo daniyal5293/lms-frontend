@@ -1,6 +1,25 @@
 import { apiFetch } from "@/src/lib/api/client";
 import type { Teacher } from "@/src/lib/types";
 
+function normalizeTeacher(teacher: Teacher): Teacher {
+  return {
+    ...teacher,
+    Id: teacher.Id ?? teacher.id ?? teacher.teacher_id,
+    Fullname: teacher.Fullname ?? teacher.FullName ?? teacher.fullname,
+    FullName: teacher.FullName ?? teacher.Fullname ?? teacher.fullname,
+    Email: teacher.Email ?? teacher.email,
+    Department: teacher.Department ?? teacher.department,
+    Salary: teacher.Salary ?? teacher.salary,
+    CNIC: teacher.CNIC ?? teacher.cnic,
+    DateOfBirth: teacher.DateOfBirth ?? teacher.dateOfBirth,
+    HireDate: teacher.HireDate ?? teacher.hireDate,
+    IdentificationNumber: teacher.IdentificationNumber ?? teacher.identificationNumber,
+    Qualification: teacher.Qualification ?? teacher.qualification,
+    Address: teacher.Address ?? teacher.address,
+    Active: teacher.Active ?? teacher.IsActive ?? teacher.isActive,
+  };
+}
+
 export async function createTeacher(payload: Record<string, unknown>) {
   return apiFetch<Teacher>("/api/admin/teachers", {
     method: "POST",
@@ -9,11 +28,13 @@ export async function createTeacher(payload: Record<string, unknown>) {
 }
 
 export async function listTeachers() {
-  return apiFetch<Teacher[]>("/api/admin/teachers");
+  const teachers = await apiFetch<Teacher[]>("/api/admin/teachers");
+  return teachers.map(normalizeTeacher);
 }
 
 export async function getTeacherById(id: string) {
-  return apiFetch<Teacher>(`/api/admin/teachers/${id}`);
+  const teacher = await apiFetch<Teacher>(`/api/admin/teachers/${id}`);
+  return normalizeTeacher(teacher);
 }
 
 export async function updateTeacher(payload: Record<string, unknown>) {

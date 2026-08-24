@@ -13,6 +13,7 @@ const navigationByRole: Record<Role, { label: string; href: string }[]> = {
   Admin: [
     { label: "Dashboard", href: "/dashboard" },
     { label: "Teachers", href: "/admin/teachers" },
+    { label: "Students", href: "/admin/students" },
     { label: "Courses", href: "/admin/courses" },
     { label: "Sections", href: "/admin/sections" },
     { label: "Roles", href: "/admin/roles" },
@@ -20,6 +21,8 @@ const navigationByRole: Record<Role, { label: string; href: string }[]> = {
   Teacher: [
     { label: "Dashboard", href: "/dashboard" },
     { label: "Teacher Area", href: "/teacher" },
+    { label: "Attendance", href: "/teacher/attendance" },
+    { label: "Exams", href: "/teacher/exams/new" },
   ],
   Student: [
     { label: "Dashboard", href: "/dashboard" },
@@ -28,12 +31,16 @@ const navigationByRole: Record<Role, { label: string; href: string }[]> = {
   HOD: [
     { label: "Dashboard", href: "/dashboard" },
     { label: "HOD Area", href: "/hod" },
+    { label: "Attendance", href: "/teacher/attendance" },
+    { label: "Exams", href: "/teacher/exams/new" },
   ],
 };
 
 export function Sidebar({ userRole = "Student" }: SidebarProps) {
-  const pathname = usePathname();
-  const items = navigationByRole[userRole] ?? navigationByRole.Student;
+  const pathname = usePathname() ?? "";
+  const items = (navigationByRole[userRole] ?? navigationByRole.Student).filter(
+    (item, index, allItems) => allItems.findIndex((candidate) => candidate.href === item.href) === index,
+  );
 
   return (
     <aside className="hidden min-h-screen w-72 border-r border-white/10 bg-[#111111] p-6 lg:flex lg:flex-col">
@@ -47,10 +54,10 @@ export function Sidebar({ userRole = "Student" }: SidebarProps) {
 
       <nav className="space-y-2">
         {items.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(item.href + "/");
+          const active = pathname === item.href || (!item.href.startsWith("/teacher") && !item.href.startsWith("/hod") && pathname.startsWith(item.href + "/"));
           return (
             <Link
-              key={item.href}
+              key={`${item.label}-${item.href}`}
               href={item.href}
               className={cn(
                 "flex items-center rounded-xl border px-3 py-2.5 text-sm transition",

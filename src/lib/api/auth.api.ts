@@ -61,6 +61,13 @@ export async function registerUser(email: string, password: string, fullName: st
   });
 }
 
+export async function changePassword(currentPassword: string, newPassword: string, confirmPassword: string) {
+  return apiFetch<void>("/api/auth/change-password", {
+    method: "POST",
+    body: JSON.stringify({ currentPassword, NewPasword: newPassword, ConfirmPassword: confirmPassword }),
+  });
+}
+
 export async function logoutUser() {
   try {
     await apiFetch<void>("/api/auth/logout", {

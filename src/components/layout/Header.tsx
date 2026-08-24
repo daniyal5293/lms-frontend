@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { logoutUser } from "@/src/lib/api/auth.api";
-import { getStoredSessionUser } from "@/src/lib/api/auth.api";
 import { useAuth } from "@/src/components/providers/AuthProvider";
 import { useNotifications } from "@/src/components/providers/NotificationProvider";
 import { cn, getInitials } from "@/src/lib/utils";
@@ -16,7 +15,7 @@ export function Header() {
   const { notify } = useNotifications();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const currentUser = user ?? getStoredSessionUser();
+  const currentUser = user;
 
   const handleLogout = async () => {
     try {
@@ -64,6 +63,12 @@ export function Header() {
               <p className="text-[11px] text-[#888888]">{currentUser?.Email ?? ""}</p>
             </div>
           </div>
+          <Link
+            href="/account/change-password"
+            className="rounded-xl border border-white/10 bg-transparent px-3 py-2 text-sm text-white transition hover:bg-white/5"
+          >
+            Change password
+          </Link>
           <button
             type="button"
             onClick={handleLogout}
@@ -80,9 +85,11 @@ export function Header() {
             {[
               { label: "Dashboard", href: "/dashboard" },
               { label: "Teachers", href: "/admin/teachers" },
+              { label: "Students", href: "/admin/students" },
               { label: "Courses", href: "/admin/courses" },
               { label: "Sections", href: "/admin/sections" },
               { label: "Roles", href: "/admin/roles" },
+              { label: "Change password", href: "/account/change-password" },
             ].map((item) => (
               <Link
                 key={item.href}
