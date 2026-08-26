@@ -21,8 +21,6 @@ const navigationByRole: Record<Role, { label: string; href: string }[]> = {
   Teacher: [
     { label: "Dashboard", href: "/dashboard" },
     { label: "Teacher Area", href: "/teacher" },
-    { label: "Attendance", href: "/teacher/attendance" },
-    { label: "Exams", href: "/teacher/exams/new" },
   ],
   Student: [
     { label: "Dashboard", href: "/dashboard" },
@@ -31,8 +29,6 @@ const navigationByRole: Record<Role, { label: string; href: string }[]> = {
   HOD: [
     { label: "Dashboard", href: "/dashboard" },
     { label: "HOD Area", href: "/hod" },
-    { label: "Attendance", href: "/teacher/attendance" },
-    { label: "Exams", href: "/teacher/exams/new" },
   ],
 };
 

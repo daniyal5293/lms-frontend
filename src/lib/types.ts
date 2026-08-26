@@ -116,7 +116,7 @@ export type TeacherSectionCourse = {
   removedDate?: string | null;
   IsActive?: boolean;
   isActive?: boolean;
-  Teacher?: { Teacher_Id?: string; Department?: string; UserId?: string; userId?: string } | null;
+  Teacher?: { Teacher_Id?: string; teacher_Id?: string; Department?: string; UserId?: string; userId?: string } | null;
   teacher?: { teacher_Id?: string; Teacher_Id?: string; Department?: string; UserId?: string; userId?: string } | null;
   Section?: { SectionId?: string; SectionName?: string; sectionName?: string; IntermediateClass?: string } | null;
   section?: { sectionId?: string; SectionId?: string; sectionName?: string; SectionName?: string; intermediateClass?: string; IntermediateClass?: string } | null;

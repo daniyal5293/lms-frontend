@@ -18,3 +18,7 @@ export async function markBulkAttendance(payload: BulkAttendancePayload) {
 export async function getCourseAttendanceSummary(id: string, from: string, to: string) {
   return apiFetch<AttendanceSummary[]>(`/api/attendance/course/${id}/summary?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
 }
+
+export async function listAttendance() {
+  return apiFetch<Attendance[]>("/api/attendance");
+}
