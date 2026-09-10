@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/src/components/providers/AuthProvider";
 import { ProtectedRoute } from "@/src/components/auth/ProtectedRoute";
 import { AppShell } from "@/src/components/layout/AppShell";
@@ -13,16 +13,18 @@ import { Select } from "@/src/components/ui/Select";
 import { ApiError } from "@/src/lib/api/client";
 import {
   markBulkAttendance,
+  getCourseAttendance,
+  updateAttendance,
 } from "@/src/lib/api/attendance.api";
-import { listStudents } from "@/src/lib/api/students.api";
+import { listStudentsBySectionId } from "@/src/lib/api/exams.api";
 import {
   listTeacherSectionCoursesByTeacherId,
 } from "@/src/lib/api/teacher-section-course.api";
 import { listTeachers } from "@/src/lib/api/teachers.api";
 import { getTeacherEntityId } from "@/src/lib/utils/teacher";
+import type { SectionStudent } from "@/src/lib/api/exams.api";
 import type {
   AttendanceStatus,
-  Student,
   TeacherSectionCourse,
 } from "@/src/lib/types";
 
@@ -33,17 +35,35 @@ const statuses: AttendanceStatus[] = [
   "Leave",
 ];
 
-const getId = (student: Student) =>
-  student.EnrollmentId ??
+const statusLabels: Record<AttendanceStatus, string> = {
+  Present: "P",
+  Absent: "A",
+  Late: "LA",
+  Leave: "LE",
+};
+
+const getId = (student: SectionStudent) =>
   student.enrollmentId ??
-  student.Id ??
-  student.id ??
+  student.EnrollmentId ??
+  student.studentEnrollmentId ??
+  student.StudentEnrollmentId ??
   "";
 
-const getName = (student: Student) =>
-  student.FullName ??
-  student.fullName ??
-  "Unnamed student";
+const getName = (student: SectionStudent) =>
+  student.fullName ?? student.FullName ?? "Unnamed student";
+
+const getAttendanceId = (record: { AttendanceId?: string }) =>
+  record.AttendanceId ?? "";
+
+const getAttendanceStatus = (status: unknown): AttendanceStatus => {
+  if (typeof status === "number") {
+    return statuses[status] ?? "Present";
+  }
+
+  return statuses.includes(status as AttendanceStatus)
+    ? (status as AttendanceStatus)
+    : "Present";
+};
 
 const getAssignmentId = (
   assignment: TeacherSectionCourse
@@ -51,6 +71,18 @@ const getAssignmentId = (
   assignment.TeacherSectionCourseId ??
   assignment.teacherSectionCourseId ??
   "";
+
+const getCellKey = (date: string, enrollmentId: string) =>
+  `${date}:${enrollmentId}`;
+
+const getMonthDates = (year: number, month: number) => {
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  return Array.from({ length: daysInMonth }, (_, index) => {
+    const day = String(index + 1).padStart(2, "0");
+    return `${year}-${String(month + 1).padStart(2, "0")}-${day}`;
+  });
+};
 
 export default function TeacherAttendancePage() {
   const { user } = useAuth();
@@ -60,21 +92,55 @@ export default function TeacherAttendancePage() {
     TeacherSectionCourse[]
   >([]);
 
-  const [students, setStudents] = useState<Student[]>([]);
+  const [students, setStudents] = useState<SectionStudent[]>([]);
   const [assignmentId, setAssignmentId] = useState("");
 
-  const [date, setDate] = useState(
-    new Date().toISOString().slice(0, 10)
+  const today = new Date();
+  const [selectedYear, setSelectedYear] = useState(today.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(today.getMonth());
+  const [statusByCell, setStatusByCell] = useState<
+    Record<string, AttendanceStatus>
+  >({});
+  const [remarksByCell, setRemarksByCell] = useState<Record<string, string>>(
+    {},
   );
-
-  const [statusByStudent, setStatusByStudent] =
-    useState<Record<string, AttendanceStatus>>({});
-
-  const [remarksByStudent, setRemarksByStudent] =
-    useState<Record<string, string>>({});
+  const [attendanceIdsByCell, setAttendanceIdsByCell] = useState<
+    Record<string, string>
+  >({});
+  const [dirtyCells, setDirtyCells] = useState<Set<string>>(new Set());
 
   const [loading, setLoading] = useState(true);
+  const [loadingAttendance, setLoadingAttendance] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const attendanceRequestId = useRef(0);
+  const matrixScrollRef = useRef<HTMLDivElement>(null);
+  const [editingRemarkCell, setEditingRemarkCell] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
+
+  const monthDates = useMemo(
+    () => getMonthDates(selectedYear, selectedMonth),
+    [selectedMonth, selectedYear],
+  );
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const monthLabel = new Intl.DateTimeFormat("en", {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(selectedYear, selectedMonth, 1));
+
+  useEffect(() => {
+    if (!matrixScrollRef.current || !monthDates.includes(todayIso)) return;
+
+    requestAnimationFrame(() => {
+      const container = matrixScrollRef.current;
+      const target = container?.querySelector<HTMLElement>(
+        `[data-date="${todayIso}"]`,
+      );
+
+      if (container && target) {
+        container.scrollLeft = Math.max(0, target.offsetLeft - 176);
+      }
+    });
+  }, [monthDates, todayIso]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -107,16 +173,10 @@ export default function TeacherAttendancePage() {
         }
 
         // Step 2: Get only this teacher's assignments
-        const [assignmentData, studentData] =
-          await Promise.all([
-            listTeacherSectionCoursesByTeacherId(
-              teacherId
-            ),
-            listStudents(),
-          ]);
+        const assignmentData =
+          await listTeacherSectionCoursesByTeacherId(teacherId);
 
         setAssignments(assignmentData);
-        setStudents(studentData);
 
         const queryAssignmentId =
           new URLSearchParams(
@@ -162,52 +222,108 @@ export default function TeacherAttendancePage() {
     selectedAssignment?.section?.sectionId ??
     "";
 
-  const sectionStudents = useMemo(
-    () =>
-      students.filter((student) => {
-        const studentSectionId =
-          student.SectionId ??
-          student.sectionId ??
-          student.Section?.Id ??
-          student.Section?.id ??
-          student.Section?.sectionId;
+  useEffect(() => {
+    if (!sectionId) {
+      return;
+    }
 
-        return (
-          !sectionId ||
-          studentSectionId === sectionId
+    const loadSectionRoster = async () => {
+      try {
+        const sectionStudents = await listStudentsBySectionId(sectionId);
+        setStudents(sectionStudents);
+      } catch {
+        setStudents([]);
+      }
+    };
+
+    void loadSectionRoster();
+  }, [sectionId]);
+
+  useEffect(() => {
+    if (!assignmentId) return;
+
+    const loadMonthlyAttendance = async () => {
+      const requestId = ++attendanceRequestId.current;
+      setLoadingAttendance(true);
+      setStatusByCell({});
+      setRemarksByCell({});
+      setAttendanceIdsByCell({});
+      setDirtyCells(new Set());
+
+      try {
+        const results = await Promise.allSettled(
+          monthDates.map((date) => getCourseAttendance(assignmentId, date)),
         );
-      }),
-    [sectionId, students]
-  );
+
+        if (requestId !== attendanceRequestId.current) return;
+
+        const nextStatuses: Record<string, AttendanceStatus> = {};
+        const nextRemarks: Record<string, string> = {};
+        const nextAttendanceIds: Record<string, string> = {};
+        let failedDays = 0;
+
+        results.forEach((result, index) => {
+          if (result.status === "rejected") {
+            if (!(result.reason instanceof ApiError && result.reason.status === 404)) {
+              failedDays += 1;
+            }
+            return;
+          }
+
+          result.value.forEach((record) => {
+            const enrollmentId = record.StudentEnrollmentId;
+            if (!enrollmentId) return;
+
+            const date = monthDates[index];
+            const key = getCellKey(date, enrollmentId);
+            nextStatuses[key] = getAttendanceStatus(record.Status);
+            nextRemarks[key] = record.Remarks ?? "";
+            nextAttendanceIds[key] = getAttendanceId(record);
+          });
+        });
+
+        setStatusByCell(nextStatuses);
+        setRemarksByCell(nextRemarks);
+        setAttendanceIdsByCell(nextAttendanceIds);
+
+        if (failedDays > 0) {
+          notify(
+            "error",
+            "Some dates could not load",
+            `${failedDays} day${failedDays === 1 ? " was" : "s were"} unavailable. You can still edit the loaded dates.`,
+          );
+        }
+      } finally {
+        if (requestId === attendanceRequestId.current) {
+          setLoadingAttendance(false);
+        }
+      }
+    };
+
+    void loadMonthlyAttendance();
+  }, [assignmentId, monthDates, notify, reloadToken]);
+
+  const sectionStudents = useMemo(() => students, [students]);
 
   const submit = async (
     event: React.FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault();
 
-    const entries = sectionStudents
-      .map((student) => ({
-        StudentEnrollmentId: getId(student),
-
-        Status:
-          statusByStudent[getId(student)] ??
-          "Present",
-
-        Remarks:
-          remarksByStudent[getId(student)] ||
-          undefined,
-      }))
-      .filter((entry) => entry.StudentEnrollmentId);
-
-    if (
-      !assignmentId ||
-      !date ||
-      entries.length === 0
-    ) {
+    if (!assignmentId) {
       notify(
         "error",
         "Validation failed",
-        "Select an assignment and ensure students have enrollment IDs."
+        "Select a course and section first."
+      );
+      return;
+    }
+
+    if (dirtyCells.size === 0) {
+      notify(
+        "error",
+        "Validation failed",
+        "Change at least one attendance cell before saving."
       );
       return;
     }
@@ -215,16 +331,57 @@ export default function TeacherAttendancePage() {
     setSubmitting(true);
 
     try {
-      await markBulkAttendance({
-        TeacherSectionCourseId: assignmentId,
-        AttendanceDate: `${date}T00:00:00`,
-        Entries: entries,
+      const bulkByDate: Record<string, { StudentEnrollmentId: string; Status: AttendanceStatus; Remarks?: string }[]> = {};
+      const updates: Promise<unknown>[] = [];
+
+      dirtyCells.forEach((key) => {
+        const separatorIndex = key.indexOf(":");
+        const date = key.slice(0, separatorIndex);
+        const enrollmentId = key.slice(separatorIndex + 1);
+        const status = statusByCell[key];
+        if (!status || date > todayIso) return;
+
+        const entry = {
+          StudentEnrollmentId: enrollmentId,
+          Status: status,
+          Remarks: remarksByCell[key] || undefined,
+        };
+        const attendanceId = attendanceIdsByCell[key];
+
+        if (attendanceId) {
+          updates.push(updateAttendance(attendanceId, entry));
+        } else {
+          bulkByDate[date] ??= [];
+          bulkByDate[date].push(entry);
+        }
       });
+
+      const bulkResults = await Promise.all(
+        Object.entries(bulkByDate).map(([date, entries]) =>
+          markBulkAttendance({
+            TeacherSectionCourseId: assignmentId,
+            AttendanceDate: `${date}T00:00:00`,
+            Entries: entries,
+          }),
+        ),
+      );
+      await Promise.all(updates);
+
+      const skipped = bulkResults.reduce(
+        (total, result) => total + (result.RecordsSkipped ?? 0),
+        0,
+      );
+      if (skipped > 0) {
+        throw new Error("Some attendance records were skipped. Verify the section enrollment IDs.");
+      }
+
+      setDirtyCells(new Set());
+      setReloadToken((current) => current + 1);
 
       notify(
         "success",
         "Attendance saved",
-        `${entries.length} attendance records were submitted.`
+        "The monthly attendance changes were saved."
       );
     } catch (error) {
       notify(
@@ -243,16 +400,16 @@ export default function TeacherAttendancePage() {
     <ProtectedRoute allowedRoles={["Teacher", "HOD"]}>
       <AppShell>
         <PageHeader
-          title="Mark attendance"
-          description="Record attendance for students in an assigned course and section."
+          title="Attendance"
+          description="Record, review, and update attendance by course, section, and date."
         />
 
-        <Card>
+        <Card className="rounded-xl p-3 sm:p-4">
           <form
-            className="space-y-6"
+            className="space-y-4"
             onSubmit={submit}
           >
-            <div className="grid gap-5 md:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1.3fr)_8rem_9rem]">
               <Select
                 label="Course and section"
                 value={assignmentId}
@@ -287,14 +444,46 @@ export default function TeacherAttendancePage() {
                 ))}
               </Select>
 
-              <Input
-                label="Attendance date"
-                type="date"
-                value={date}
-                onChange={(event) =>
-                  setDate(event.target.value)
-                }
-              />
+              <Select
+                label="Month"
+                value={selectedMonth}
+                onChange={(event) => setSelectedMonth(Number(event.target.value))}
+                disabled={loadingAttendance || submitting}
+              >
+                {Array.from({ length: 12 }, (_, month) => (
+                  <option key={month} value={month}>
+                    {new Intl.DateTimeFormat("en", { month: "long" }).format(new Date(2024, month, 1))}
+                  </option>
+                ))}
+              </Select>
+
+              <Select
+                label="Year"
+                value={selectedYear}
+                onChange={(event) => setSelectedYear(Number(event.target.value))}
+                disabled={loadingAttendance || submitting}
+              >
+                {Array.from({ length: 5 }, (_, index) => {
+                  const year = today.getFullYear() - 2 + index;
+                  return <option key={year} value={year}>{year}</option>;
+                })}
+              </Select>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm">
+              <div>
+                <p className="font-medium text-white">
+                  {loadingAttendance
+                    ? `Loading ${monthLabel}...`
+                    : `${monthLabel} attendance`}
+                </p>
+                <p className="mt-1 text-xs text-[#888888]">
+                  Choose a status in any day column, add a remark, then save the changed cells.
+                </p>
+              </div>
+              <span className="text-[#888888]">
+                {dirtyCells.size} unsaved change{dirtyCells.size === 1 ? "" : "s"}
+              </span>
             </div>
 
             {sectionStudents.length === 0 ? (
@@ -303,21 +492,30 @@ export default function TeacherAttendancePage() {
                 for this section.
               </p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-left text-sm">
+              <div ref={matrixScrollRef} className="overflow-x-auto rounded-lg border border-white/10">
+                <table className="min-w-max text-left text-xs">
                   <thead className="border-b border-white/10">
                     <tr>
-                      <th className="px-3 py-3 text-[#888888]">
-                        Student
+                      <th scope="col" className="sticky left-0 z-20 min-w-44 bg-[#171717] px-3 py-2 text-left text-xs uppercase tracking-wide text-[#888888]">
+                        Students
                       </th>
-
-                      <th className="px-3 py-3 text-[#888888]">
-                        Status
-                      </th>
-
-                      <th className="px-3 py-3 text-[#888888]">
-                        Remarks
-                      </th>
+                      {monthDates.map((date) => {
+                        const day = new Date(`${date}T12:00:00`);
+                        const isToday = date === todayIso;
+                        const isFuture = date > todayIso;
+                        return (
+                          <th
+                            key={date}
+                            data-date={date}
+                            className={`min-w-28 border-l border-white/10 px-2 py-2 text-center ${isToday ? "bg-[#FF6B35]/15" : ""} ${isFuture ? "opacity-40" : ""}`}
+                          >
+                            <span className="block font-semibold text-white">{day.getDate()}</span>
+                            <span className="block uppercase tracking-wide text-[10px] text-[#888888]">
+                              {new Intl.DateTimeFormat("en", { weekday: "short" }).format(day)}
+                            </span>
+                          </th>
+                        );
+                      })}
                     </tr>
                   </thead>
 
@@ -330,61 +528,75 @@ export default function TeacherAttendancePage() {
                           key={id}
                           className="border-b border-white/5"
                         >
-                          <td className="px-3 py-3">
-                            {getName(student)}
+                          <td
+                            scope="row"
+                            className="sticky left-0 z-20 bg-[#171717] px-3 py-2"
+                          >
+                            <span className="font-medium text-white">
+                              {getName(student)}
+                            </span>
                           </td>
-
-                          <td className="px-3 py-3">
-                            <Select
-                              aria-label={`Attendance status for ${getName(
-                                student
-                              )}`}
-                              value={
-                                statusByStudent[id] ??
-                                "Present"
-                              }
-                              onChange={(event) =>
-                                setStatusByStudent(
-                                  (current) => ({
-                                    ...current,
-                                    [id]:
-                                      event.target
-                                        .value as AttendanceStatus,
-                                  })
-                                )
-                              }
-                            >
-                              {statuses.map((status) => (
-                                <option
-                                  key={status}
-                                  value={status}
+                          {monthDates.map((date) => {
+                            const key = getCellKey(date, id);
+                            const isFuture = date > todayIso;
+                            return (
+                              <td
+                                key={key}
+                                tabIndex={isFuture ? -1 : 0}
+                                onDoubleClick={() => {
+                                  if (!isFuture) setEditingRemarkCell(key);
+                                }}
+                                onKeyDown={(event) => {
+                                  if ((event.key === "Enter" || event.key === " ") && !isFuture) {
+                                    event.preventDefault();
+                                    setEditingRemarkCell(key);
+                                  }
+                                }}
+                                title="Double-click or press Enter to edit remark"
+                                className={`border-l border-white/10 px-1.5 py-1.5 align-top ${date === todayIso ? "bg-[#FF6B35]/[0.04]" : ""}`}
+                              >
+                                <Select
+                                  aria-label={`${getName(student)} status for ${date}`}
+                                  value={statusByCell[key] ?? ""}
+                                  disabled={loadingAttendance || submitting || isFuture}
+                                  className="w-28 rounded-md px-1.5 py-1 text-xs"
+                                  onChange={(event) => {
+                                    const value = event.target.value as AttendanceStatus;
+                                    setStatusByCell((current) => ({ ...current, [key]: value }));
+                                    setDirtyCells((current) => new Set(current).add(key));
+                                  }}
                                 >
-                                  {status}
-                                </option>
-                              ))}
-                            </Select>
-                          </td>
-
-                          <td className="px-3 py-3">
-                            <Input
-                              aria-label={`Remarks for ${getName(
-                                student
-                              )}`}
-                              value={
-                                remarksByStudent[id] ?? ""
-                              }
-                              onChange={(event) =>
-                                setRemarksByStudent(
-                                  (current) => ({
-                                    ...current,
-                                    [id]:
-                                      event.target.value,
-                                  })
-                                )
-                              }
-                              placeholder="Optional"
-                            />
-                          </td>
+                                  <option value="">Not marked</option>
+                                  {statuses.map((status) => <option key={status} value={status}>{statusLabels[status]}</option>)}
+                                </Select>
+                                {editingRemarkCell === key ? (
+                                  <Input
+                                    aria-label={`${getName(student)} remark for ${date}`}
+                                    autoFocus
+                                    value={remarksByCell[key] ?? ""}
+                                    disabled={loadingAttendance || submitting || isFuture}
+                                    className="mt-1 w-28 rounded-md px-1.5 py-1 text-[11px]"
+                                    onBlur={() => setEditingRemarkCell(null)}
+                                    onKeyDown={(event) => {
+                                      if (event.key === "Enter" || event.key === "Escape") {
+                                        event.preventDefault();
+                                        setEditingRemarkCell(null);
+                                      }
+                                    }}
+                                    onChange={(event) => {
+                                      setRemarksByCell((current) => ({ ...current, [key]: event.target.value }));
+                                      setDirtyCells((current) => new Set(current).add(key));
+                                    }}
+                                    placeholder="Remark"
+                                  />
+                                ) : (
+                                  <span className="mt-1 block min-h-5 w-28 truncate px-1 text-[11px] text-[#888888]">
+                                    {remarksByCell[key] || "Double-click for remark"}
+                                  </span>
+                                )}
+                              </td>
+                            );
+                          })}
                         </tr>
                       );
                     })}
@@ -393,14 +605,14 @@ export default function TeacherAttendancePage() {
               </div>
             )}
 
-            <div className="flex justify-end">
+            <div className="flex justify-end border-t border-white/10 pt-3">
               <Button
                 type="submit"
-                loading={submitting}
+                loading={submitting || loadingAttendance}
+                disabled={loadingAttendance}
+                className="rounded-lg px-4 py-2 text-sm"
               >
-                {submitting
-                  ? "Saving..."
-                  : "Save attendance"}
+                {submitting ? "Saving..." : "Save changes"}
               </Button>
             </div>
           </form>

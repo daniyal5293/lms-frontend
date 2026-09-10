@@ -43,7 +43,7 @@ export default function LoginPage() {
     setSubmitting(true);
 
     try {
-      const response = await loginUser(form.email, form.password);
+      const response = await loginUser(form.email.trim(), form.password);
       login(response.User, response.AccessToken);
       notify("success", "Welcome back", `Signed in as ${response.User.FullName}.`);
       router.push("/dashboard");

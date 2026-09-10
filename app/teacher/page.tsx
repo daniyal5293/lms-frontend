@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/components/providers/AuthProvider";
 import { ProtectedRoute } from "@/src/components/auth/ProtectedRoute";
@@ -9,14 +9,17 @@ import { Badge } from "@/src/components/ui/Badge";
 import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
 import { PageHeader } from "@/src/components/ui/PageHeader";
+import { Select } from "@/src/components/ui/Select";
 import { useNotifications } from "@/src/components/providers/NotificationProvider";
-import { listAttendance } from "@/src/lib/api/attendance.api";
-import { listExams, type Exam } from "@/src/lib/api/exams.api";
+import {
+  listExamsByTeacherId,
+  type Exam,
+} from "@/src/lib/api/exams.api";
+import { listResultsByExamId } from "@/src/lib/api/exams.api";
 import { ApiError } from "@/src/lib/api/client";
 import { listTeachers } from "@/src/lib/api/teachers.api";
 import { listTeacherSectionCoursesByTeacherId } from "@/src/lib/api/teacher-section-course.api";
 import type {
-  Attendance,
   Teacher,
   TeacherSectionCourse,
 } from "@/src/lib/types";
@@ -26,26 +29,12 @@ const assignmentId = (assignment: TeacherSectionCourse) =>
   assignment.teacherSectionCourseId ??
   "";
 
-const courseId = (assignment: TeacherSectionCourse) =>
-  assignment.CourseId ??
-  assignment.courseId ??
-  assignment.Course?.CourseId ??
-  assignment.course?.courseId ??
-  "";
-
 const sectionId = (assignment: TeacherSectionCourse) =>
   assignment.SectionId ??
   assignment.sectionId ??
   assignment.Section?.SectionId ??
   assignment.section?.sectionId ??
   "";
-
-const courseName = (assignment: TeacherSectionCourse) =>
-  assignment.Course?.CourseName ??
-  assignment.Course?.courseName ??
-  assignment.course?.CourseName ??
-  assignment.course?.courseName ??
-  "Course name unavailable";
 
 const sectionName = (assignment: TeacherSectionCourse) =>
   assignment.Section?.SectionName ??
@@ -60,7 +49,43 @@ const getTeacherId = (teacher: Teacher | undefined) =>
   teacher?.id ??
   "";
 
-export default function TeacherPage() {
+const getExamId = (exam: Exam) =>
+  exam.ExamId ??
+  exam.examId ??
+  exam.examID ??
+  "";
+
+const getExamAssignmentId = (exam: Exam) =>
+  exam.TeacherSectionCourseId ??
+  exam.teacherSectionCourseId ??
+  "";
+
+const getExamTitle = (exam: Exam) =>
+  exam.Title ??
+  exam.title ??
+  "Untitled exam";
+
+const getExamTypeId = (exam: Exam) =>
+  exam.ExamTypeId ??
+  exam.examTypeId ??
+  "";
+
+const getExamDate = (exam: Exam) =>
+  exam.ExamDate ??
+  exam.examDate ??
+  "";
+
+const getTotalMarks = (exam: Exam) =>
+  exam.TotalMarks ??
+  exam.totalMarks ??
+  0;
+
+const isExamPublished = (exam: Exam) =>
+  exam.IsPublished ??
+  exam.isPublished ??
+  false;
+
+export default function TeacherExamsPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { notify } = useNotifications();
@@ -70,8 +95,10 @@ export default function TeacherPage() {
   >([]);
 
   const [exams, setExams] = useState<Exam[]>([]);
-  const [attendance, setAttendance] = useState<Attendance[]>([]);
+  const [uploadedExamIds, setUploadedExamIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [activeSectionId, setActiveSectionId] = useState("");
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState("");
 
   const loadTeacherData = useCallback(async () => {
     if (!user) {
@@ -82,29 +109,25 @@ export default function TeacherPage() {
     try {
       setLoading(true);
 
-      // First get teachers only
       const teachers = await listTeachers();
-
-      console.log("Logged-in user:", user);
-      console.log("Teachers API response:", teachers);
 
       const currentUserEmail = (user.Email ?? "")
         .trim()
         .toLowerCase();
 
       const teacher = teachers.find((item) => {
-        const teacherEmail = (item.Email ?? item.email ?? "")
+        const teacherEmail = (
+          item.Email ??
+          item.email ??
+          ""
+        )
           .trim()
           .toLowerCase();
 
         return teacherEmail === currentUserEmail;
       });
 
-      console.log("Matched teacher:", teacher);
-
       const teacherEntityId = getTeacherId(teacher);
-
-      console.log("Teacher entity ID:", teacherEntityId);
 
       if (!teacherEntityId) {
         throw new Error(
@@ -112,99 +135,39 @@ export default function TeacherPage() {
         );
       }
 
-      // Get assignments using the NEW API
-      const assignmentData =
-        await listTeacherSectionCoursesByTeacherId(
-          teacherEntityId
-        );
-
-      console.log(
-        "Teacher assignments API response:",
-        assignmentData
-      );
+      const [assignmentData, examData] = await Promise.all([
+        listTeacherSectionCoursesByTeacherId(teacherEntityId),
+        listExamsByTeacherId(teacherEntityId),
+      ]);
 
       setAssignments(assignmentData);
+      setExams(examData);
 
-      const ownAssignmentIds = new Set(
-        assignmentData
-          .map(assignmentId)
-          .filter(Boolean)
+      const resultChecks = await Promise.all(
+        examData.map(async (exam) => {
+          const examId = getExamId(exam);
+          const assignment = assignmentData.find((item) => assignmentId(item) === getExamAssignmentId(exam));
+          const currentSectionId = assignment ? sectionId(assignment) : "";
+          if (!examId || !currentSectionId) return [examId, false] as const;
+          const results = await listResultsByExamId(examId).catch(() => []);
+          return [examId, results.length > 0] as const;
+        }),
       );
+      setUploadedExamIds(new Set(resultChecks.filter(([, hasResults]) => hasResults).map(([id]) => id)));
 
-      // These APIs should not prevent assignments from loading
-      const [examResult, attendanceResult] =
-        await Promise.allSettled([
-          listExams(),
-          listAttendance(),
-        ]);
+      const firstSectionId = sectionId(assignmentData[0]);
 
-      if (examResult.status === "fulfilled") {
-        setExams(
-          examResult.value.filter((exam) =>
-            ownAssignmentIds.has(
-              exam.TeacherSectionCourseId ??
-                exam.teacherSectionCourseId ??
-                ""
-            )
-          )
-        );
-      } else {
-        console.error("Failed to load exams:", {
-  error: examResult.reason,
-  message:
-    examResult.reason instanceof ApiError
-      ? examResult.reason.message
-      : "Unknown error",
-  status:
-    examResult.reason instanceof ApiError
-      ? examResult.reason.status
-      : undefined,
-  details:
-    examResult.reason instanceof ApiError
-      ? examResult.reason.details
-      : undefined,
-});
-        setExams([]);
-      }
-
-      if (attendanceResult.status === "fulfilled") {
-        setAttendance(
-          attendanceResult.value.filter((record) =>
-            ownAssignmentIds.has(
-              record.TeacherSectionCourseId
-            )
-          )
-        );
-      } else {
-        console.error("Failed to load attendance:", {
-  error: attendanceResult.reason,
-  message:
-    attendanceResult.reason instanceof ApiError
-      ? attendanceResult.reason.message
-      : "Unknown error",
-  status:
-    attendanceResult.reason instanceof ApiError
-      ? attendanceResult.reason.status
-      : undefined,
-  details:
-    attendanceResult.reason instanceof ApiError
-      ? attendanceResult.reason.details
-      : undefined,
-});
-        setAttendance([]);
-      }
+      setActiveSectionId(firstSectionId);
+      setSelectedAssignmentId(assignmentId(assignmentData[0]));
     } catch (error) {
-      console.error(
-        "Teacher Area load error:",
-        error
-      );
+      console.error("Teacher exams load error:", error);
 
       const message =
         error instanceof ApiError
-          ? error.message
+          ? error.message || "Unable to load teacher exams."
           : error instanceof Error
             ? error.message
-            : "Unable to load teacher data.";
+            : "Unable to load teacher exams.";
 
       notify(
         "error",
@@ -214,227 +177,351 @@ export default function TeacherPage() {
 
       setAssignments([]);
       setExams([]);
-      setAttendance([]);
+      setActiveSectionId("");
+      setSelectedAssignmentId("");
     } finally {
       setLoading(false);
     }
   }, [notify, user]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadTeacherData();
   }, [loadTeacherData]);
+
+  /*
+   * One tab per unique section.
+   */
+  const sections = useMemo(() => {
+    const uniqueSections = new Map<
+      string,
+      TeacherSectionCourse
+    >();
+
+    assignments.forEach((assignment) => {
+      const id = sectionId(assignment);
+
+      if (id && !uniqueSections.has(id)) {
+        uniqueSections.set(id, assignment);
+      }
+    });
+
+    return Array.from(uniqueSections.values());
+  }, [assignments]);
+
+  /*
+   * Get all TeacherSectionCourse IDs
+   * belonging to the selected section.
+   */
+  const activeSectionAssignmentIds = useMemo(() => {
+    return new Set(
+      assignments
+        .filter(
+          (assignment) =>
+            sectionId(assignment) === activeSectionId
+        )
+        .map(assignmentId)
+        .filter(Boolean)
+    );
+  }, [activeSectionId, assignments]);
+
+  /*
+   * Only show exams belonging to the
+   * selected section.
+   */
+  const sectionExams = useMemo(() => {
+    return exams.filter((exam) =>
+      activeSectionAssignmentIds.has(
+        getExamAssignmentId(exam)
+      )
+    );
+  }, [activeSectionAssignmentIds, exams]);
+
+  const selectedAssignment = assignments.find(
+    (assignment) => assignmentId(assignment) === selectedAssignmentId,
+  );
+
+  const handleAssignmentChange = (nextAssignmentId: string) => {
+    setSelectedAssignmentId(nextAssignmentId);
+
+    const assignment = assignments.find(
+      (item) => assignmentId(item) === nextAssignmentId,
+    );
+
+    setActiveSectionId(assignment ? sectionId(assignment) : "");
+  };
+
+  /*
+   * Find the assignment belonging to an exam.
+   *
+   * This is needed to get the SectionId when
+   * opening Upload Result.
+   */
+  const getAssignmentForExam = useCallback(
+    (exam: Exam) => {
+      const examAssignmentId = getExamAssignmentId(exam);
+
+      return assignments.find(
+        (assignment) =>
+          assignmentId(assignment) === examAssignmentId
+      );
+    },
+    [assignments]
+  );
+
+  const handleUploadResult = (exam: Exam) => {
+    const examId = getExamId(exam);
+
+    if (!examId) {
+      notify(
+        "error",
+        "Unable to upload result",
+        "This exam does not have a valid exam ID."
+      );
+      return;
+    }
+
+    const assignment = getAssignmentForExam(exam);
+
+    if (!assignment) {
+      notify(
+        "error",
+        "Unable to upload result",
+        "Could not find the course and section for this exam."
+      );
+      return;
+    }
+
+    const currentSectionId = sectionId(assignment);
+
+    if (!currentSectionId) {
+      notify(
+        "error",
+        "Unable to upload result",
+        "Could not determine the section for this exam."
+      );
+      return;
+    }
+
+    const totalMarks = getTotalMarks(exam);
+
+    router.push(
+      `/teacher/exams/${encodeURIComponent(
+        examId
+      )}/results?sectionId=${encodeURIComponent(
+        currentSectionId
+      )}&totalMarks=${encodeURIComponent(
+        String(totalMarks)
+      )}`
+    );
+  };
 
   return (
     <ProtectedRoute allowedRoles={["Teacher", "HOD"]}>
       <AppShell>
         <PageHeader
           title="Teacher Area"
-          description="Work with your assigned courses, exams, and attendance."
+          description="Manage your assigned courses, sections, and exams."
         />
 
-        <Card className="mb-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">
-              Assigned courses and sections
-            </h2>
-
-            <Badge tone="info">
-              {loading
-                ? "Loading"
-                : `${assignments.length} assigned`}
-            </Badge>
-          </div>
-
-          {assignments.length === 0 && !loading ? (
-            <p className="py-8 text-sm text-[#888888]">
-              No assignments were found for this teacher.
-            </p>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2">
-              {assignments.map((assignment) => {
-                const id = assignmentId(assignment);
-                const course = courseId(assignment);
-                const section = sectionId(assignment);
-
-                return (
-                  <div
-                    key={id || `${course}-${section}`}
-                    className="rounded-xl border border-white/10 bg-[#111111] p-4"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h3 className="font-semibold">
-                          {courseName(assignment)}
-                        </h3>
-
-                        <p className="mt-1 text-sm text-[#888888]">
-                          Section {sectionName(assignment)}
-                        </p>
-                      </div>
-
-                      <Badge
-                        tone={
-                          assignment.IsActive ??
-                          assignment.isActive
-                            ? "success"
-                            : "warning"
-                        }
-                      >
-                        {assignment.IsActive ??
-                        assignment.isActive
-                          ? "Active"
-                          : "Inactive"}
-                      </Badge>
-                    </div>
-
-                    <div className="mt-4 flex gap-3">
-                      <Button
-                        variant="secondary"
-                        disabled={!id}
-                        onClick={() =>
-                          router.push(
-                            `/teacher/attendance?assignmentId=${encodeURIComponent(
-                              id
-                            )}&courseId=${encodeURIComponent(
-                              course
-                            )}&sectionId=${encodeURIComponent(
-                              section
-                            )}`
-                          )
-                        }
-                      >
-                        Attendance
-                      </Button>
-
-                      <Button
-                        disabled={!id}
-                        onClick={() =>
-                          router.push(
-                            `/teacher/exams/new?assignmentId=${encodeURIComponent(
-                              id
-                            )}&courseId=${encodeURIComponent(
-                              course
-                            )}&sectionId=${encodeURIComponent(
-                              section
-                            )}`
-                          )
-                        }
-                      >
-                        Create exam
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Card>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
-            <div className="mb-4 flex items-center justify-between">
+        <Card>
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <div>
               <h2 className="text-lg font-semibold">
                 My exams
               </h2>
 
-              <Badge tone="info">{exams.length}</Badge>
+              <p className="mt-1 text-sm text-[#888888]">
+                Select a section to view its exams.
+              </p>
             </div>
 
-            {exams.length === 0 ? (
-              <p className="text-sm text-[#888888]">
-                No exams found.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {exams.map((exam) => (
-                  <div
-                    key={
-                      exam.ExamId ??
-                      exam.examId ??
-                      `${exam.Title ?? exam.title}-${exam.ExamDate ?? exam.examDate}`
-                    }
-                    className="border-b border-white/10 pb-3"
-                  >
-                    <div className="flex justify-between gap-3">
-                      <span>
-                        {exam.Title ??
-                          exam.title ??
-                          "Untitled exam"}
-                      </span>
+            <Badge tone="info">
+              {sectionExams.length} exams
+            </Badge>
+          </div>
 
-                      <Badge
-                        tone={
-                          exam.IsPublished ?? exam.isPublished
-                            ? "success"
-                            : "warning"
-                        }
-                      >
-                        {exam.IsPublished ?? exam.isPublished
-                          ? "Published"
-                          : "Draft"}
-                      </Badge>
-                    </div>
+          <div className="mb-6 grid gap-4 rounded-xl border border-white/10 bg-[#111111] p-4 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-end">
+            <Select
+              label="Assigned course and section"
+              value={selectedAssignmentId}
+              onChange={(event) =>
+                handleAssignmentChange(event.target.value)
+              }
+              disabled={loading || assignments.length === 0}
+            >
+              <option value="">
+                {loading
+                  ? "Loading assignments..."
+                  : "Select assignment"}
+              </option>
 
-                    <p className="mt-1 text-xs text-[#888888]">
-                      {exam.ExamType ?? exam.examType ?? "Exam"} ·{" "}
-                      {exam.ExamDate ??
-                        exam.examDate ??
-                        "Date unavailable"}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
+              {assignments.map((assignment) => (
+                <option
+                  key={assignmentId(assignment)}
+                  value={assignmentId(assignment)}
+                >
+                  {assignment.Course?.CourseName ??
+                    assignment.Course?.courseName ??
+                    assignment.course?.CourseName ??
+                    assignment.course?.courseName ??
+                    "Course"}{" "}
+                  -{" "}
+                  {sectionName(assignment)}
+                </option>
+              ))}
+            </Select>
 
-          <Card>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold">
-                Attendance records
-              </h2>
+            <Button
+              disabled={!selectedAssignment}
+              onClick={() =>
+                router.push(
+                  `/teacher/exams/new?assignmentId=${encodeURIComponent(
+                    selectedAssignmentId,
+                  )}`,
+                )
+              }
+            >
+              Create exam
+            </Button>
 
-              <Badge tone="info">
-                {attendance.length}
-              </Badge>
-            </div>
+            <Button
+              variant="secondary"
+              disabled={!selectedAssignment}
+              onClick={() =>
+                router.push(
+                  `/teacher/attendance?assignmentId=${encodeURIComponent(
+                    selectedAssignmentId,
+                  )}`,
+                )
+              }
+            >
+              Mark attendance
+            </Button>
+          </div>
 
-            {attendance.length === 0 ? (
-              <p className="text-sm text-[#888888]">
-                No attendance records found.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {attendance.slice(0, 8).map((record) => (
-                  <div
-                    key={record.AttendanceId}
-                    className="flex justify-between gap-3 border-b border-white/10 pb-3"
-                  >
-                    <div>
-                      <span>
-                        {record.StudentFullName ?? "Student"}
-                      </span>
+          {sections.length === 0 && !loading ? (
+            <p className="py-8 text-sm text-[#888888]">
+              No sections are available.
+            </p>
+          ) : (
+            <>
+              {/* SECTION NAVIGATION */}
+              <div className="mb-6 flex flex-wrap gap-2 border-b border-white/10 pb-4">
+                {sections.map((assignment) => {
+                  const id = sectionId(assignment);
+                  const name = sectionName(assignment);
+                  const active =
+                    id === activeSectionId;
 
-                      <p className="text-xs text-[#888888]">
-                        {record.SectionName ?? "Section"} ·{" "}
-                        {record.AttendanceDate}
-                      </p>
-                    </div>
-
-                    <Badge
-                      tone={
-                        record.Status === "Present"
-                          ? "success"
-                          : "warning"
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() =>
+                        setActiveSectionId(id)
                       }
+                      className={[
+                        "rounded-lg px-4 py-2 text-sm font-medium transition",
+                        active
+                          ? "bg-white text-black"
+                          : "border border-white/10 bg-[#111111] text-[#aaaaaa] hover:text-white",
+                      ].join(" ")}
                     >
-                      {record.Status}
-                    </Badge>
-                  </div>
-                ))}
+                      Section {name}
+                    </button>
+                  );
+                })}
               </div>
-            )}
-          </Card>
-        </div>
+
+              {/* EXAMS */}
+              {loading ? (
+                <p className="py-8 text-sm text-[#888888]">
+                  Loading exams...
+                </p>
+              ) : sectionExams.length === 0 ? (
+                <p className="py-8 text-sm text-[#888888]">
+                  No exams found for this section.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {sectionExams.map((exam) => (
+                    <div
+                      key={
+                        getExamId(exam) ||
+                        `${getExamTitle(exam)}-${getExamDate(
+                          exam
+                        )}`
+                      }
+                      className="rounded-xl border border-white/10 bg-[#111111] p-4"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <h3 className="font-semibold">
+                            {getExamTitle(exam)}
+                          </h3>
+
+                          <div className="mt-2 flex flex-wrap gap-2 text-sm text-[#888888]">
+                            <span>
+                              Date:{" "}
+                              {getExamDate(exam) ||
+                                "Date unavailable"}
+                            </span>
+
+                            <span>•</span>
+
+                            <span>
+                              Total marks:{" "}
+                              {getTotalMarks(exam)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <Badge
+                          tone={
+                            isExamPublished(exam)
+                              ? "success"
+                              : "warning"
+                          }
+                        >
+                          {isExamPublished(exam)
+                            ? "Published"
+                            : "Draft"}
+                        </Badge>
+                      </div>
+
+                      <p className="mt-3 text-xs text-[#666666]">
+                        Exam Type ID:{" "}
+                        {getExamTypeId(exam) ||
+                          "Unavailable"}
+                      </p>
+
+                      {/* ACTIONS */}
+                      <div className="mt-4 flex flex-wrap gap-3">
+                        <Button
+                          disabled={uploadedExamIds.has(getExamId(exam))}
+                          onClick={() =>
+                            handleUploadResult(exam)
+                          }
+                        >
+                          Upload Result
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          onClick={() =>
+                            handleUploadResult(exam)
+                          }
+                        >
+                          Edit
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </Card>
       </AppShell>
     </ProtectedRoute>
   );

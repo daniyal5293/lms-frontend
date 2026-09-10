@@ -44,9 +44,10 @@ function normalizeAuthResponse(payload: RawAuthResponse): AuthResponse {
 }
 
 export async function loginUser(email: string, password: string) {
+  clearAuthSession();
   const payload = await apiFetch<RawAuthResponse>("/api/auth/login", {
     method: "POST",
-    body: JSON.stringify({ Email: email, Password: password }),
+    body: JSON.stringify({ Email: email.trim(), Password: password }),
   });
   const response = normalizeAuthResponse(payload);
 

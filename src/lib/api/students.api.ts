@@ -4,7 +4,16 @@ import type { Student } from "@/src/lib/types";
 function normalizeStudent(student: Student): Student {
   return {
     ...student,
-    Id: student.Id ?? student.id ?? student.StudentId ?? student.studentId ?? student.student_id,
+    Id:
+      student.Id ??
+      student.id ??
+      student.StudentEnrollmentId ??
+      student.studentEnrollmentId ??
+      student.EnrollmentId ??
+      student.enrollmentId ??
+      student.StudentId ??
+      student.studentId ??
+      student.student_id,
     FullName: student.FullName ?? student.fullName,
     Email: student.Email ?? student.email,
     SectionId: student.SectionId ?? student.sectionId,

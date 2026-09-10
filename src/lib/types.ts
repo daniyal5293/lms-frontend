@@ -59,6 +59,7 @@ export type Course = {
 };
 
 export type Section = {
+  SectionId?: string;
   Id?: string;
   id?: string;
   sectionId?: string;
@@ -96,6 +97,8 @@ export type Student = {
   cnic?: string;
   SectionId?: string;
   sectionId?: string;
+  StudentEnrollmentId?: string;
+  studentEnrollmentId?: string;
   EnrollmentId?: string;
   enrollmentId?: string;
   Section?: Section | null;
@@ -150,6 +153,15 @@ export type AttendanceSummary = {
   LateCount: number;
   LeaveCount: number;
   AttendancePercentage: number;
+};
+
+export type StudentAttendanceCourse = {
+  TeacherSectionCourseId: string;
+  CourseId: string;
+  CourseName?: string | null;
+  TeacherId: string;
+  SectionId: string;
+  SectionName?: string | null;
 };
 
 export type ApiErrorData = {

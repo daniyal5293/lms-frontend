@@ -58,11 +58,17 @@ export function buildApiUrl(path: string) {
 
 function normalizeError(status: number, payload: unknown, fallback: string) {
   const details = (payload ?? {}) as ApiErrorData;
+  const validationMessage = details.errors
+    ? Object.entries(details.errors)
+        .flatMap(([field, messages]) => (Array.isArray(messages) ? messages : [messages]).map((message) => `${field}: ${message}`))
+        .join("; ")
+    : undefined;
 
   const message =
     details?.Message ??
     details?.message ??
     details?.title ??
+    validationMessage ??
     (typeof payload === "string" ? payload : undefined) ??
     fallback;
 
@@ -119,6 +125,8 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
     const message =
       response.status === 401 && shouldRefreshOnUnauthorized
         ? "Your session expired. Please sign in again."
+        : response.status === 401
+          ? "Invalid email or password."
         : response.status === 403
           ? "You do not have permission to perform this action."
           : response.status === 404
