@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -278,8 +278,8 @@ export default function NewExamPage() {
               />
 
               {fromAssignmentCard ? (
-                <div className="rounded-xl border border-white/10 bg-[#111111] px-3 py-2.5 text-sm text-white">
-                  <span className="mb-1 block text-[#888888]">
+                <div className="rounded-xl border border-black/10 theme-bg-page px-3 py-2.5 text-sm theme-text">
+                  <span className="mb-1 block theme-text-muted">
                     Assigned course and section
                   </span>
 
@@ -322,7 +322,7 @@ export default function NewExamPage() {
                 </Select>
               )}
 
-              <label className="flex items-center gap-3 text-sm text-[#d4d4d4]">
+              <label className="flex items-center gap-3 text-sm theme-text-soft">
                 <input
                   type="checkbox"
                   checked={form.IsPublished}
@@ -363,3 +363,8 @@ export default function NewExamPage() {
     </ProtectedRoute>
   );
 }
+
+
+
+
+

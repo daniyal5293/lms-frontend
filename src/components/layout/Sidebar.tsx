@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -20,7 +20,9 @@ const navigationByRole: Record<Role, { label: string; href: string }[]> = {
   ],
   Teacher: [
     { label: "Dashboard", href: "/dashboard" },
-    { label: "Teacher Area", href: "/teacher" },
+    { label: "Exams", href: "/teacher" },
+    { label: "Attendance", href: "/teacher/attendance" },
+    { label: "Students", href: "/teacher/students" },
   ],
   Student: [
     { label: "Dashboard", href: "/dashboard" },
@@ -29,6 +31,7 @@ const navigationByRole: Record<Role, { label: string; href: string }[]> = {
   HOD: [
     { label: "Dashboard", href: "/dashboard" },
     { label: "HOD Area", href: "/hod" },
+    { label: "Fee Management", href: "/hod/fee-management" },
   ],
 };
 
@@ -39,16 +42,16 @@ export function Sidebar({ userRole = "Student" }: SidebarProps) {
   );
 
   return (
-    <aside className="hidden min-h-screen w-72 border-r border-white/10 bg-[#111111] p-6 lg:flex lg:flex-col">
-      <div className="mb-8 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FF6B35] font-bold text-white">L</div>
+    <aside className="hidden min-h-screen w-60 border-r border-black/10 theme-bg-page p-4 lg:flex lg:flex-col">
+      <div className="mb-6 flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl theme-bg-primary font-bold theme-text-on-primary">L</div>
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-[#888888]">College</p>
-          <h1 className="text-lg font-semibold text-white">LMS Portal</h1>
+          <p className="text-xs uppercase tracking-widest theme-text-muted">College</p>
+          <h1 className="text-lg font-semibold theme-text">LMS Portal</h1>
         </div>
       </div>
 
-      <nav className="space-y-2">
+      <nav className="space-y-1.5">
         {items.map((item) => {
           const active = pathname === item.href || (!item.href.startsWith("/teacher") && !item.href.startsWith("/hod") && pathname.startsWith(item.href + "/"));
           return (
@@ -56,10 +59,10 @@ export function Sidebar({ userRole = "Student" }: SidebarProps) {
               key={`${item.label}-${item.href}`}
               href={item.href}
               className={cn(
-                "flex items-center rounded-xl border px-3 py-2.5 text-sm transition",
+                "flex items-center rounded-lg border px-3 py-2 text-sm transition",
                 active
-                  ? "border-[#FF6B35] bg-[#FF6B35]/10 text-white"
-                  : "border-transparent text-[#d4d4d4] hover:border-white/10 hover:bg-white/5 hover:text-white",
+                  ? "theme-border-primary theme-bg-primary-soft theme-text"
+                  : "border-transparent theme-text-soft hover:border-black/10 hover:bg-black/5 hover:theme-text",
               )}
             >
               {item.label}
@@ -68,10 +71,16 @@ export function Sidebar({ userRole = "Student" }: SidebarProps) {
         })}
       </nav>
 
-      <div className="mt-auto rounded-2xl border border-white/10 bg-[#171717] p-4">
-        <p className="text-xs uppercase tracking-[0.2em] text-[#888888]">Role</p>
-        <div className="mt-2 text-lg font-semibold text-white">{userRole}</div>
+      <div className="mt-auto rounded-xl border border-black/10 theme-bg-surface p-3">
+        <p className="text-xs uppercase tracking-widest theme-text-muted">Role</p>
+        <div className="mt-2 text-lg font-semibold theme-text">{userRole}</div>
       </div>
     </aside>
   );
 }
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   createContext,
@@ -52,28 +52,28 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         {items.map((item) => (
           <div
             key={item.id}
-            className="pointer-events-auto rounded-xl border border-white/10 bg-[#1a1a1a] p-4 text-sm shadow-xl"
+            className="pointer-events-auto rounded-xl border border-black/10 theme-bg-input p-4 text-sm shadow-xl"
           >
             <div className="mb-1 flex items-center justify-between gap-3">
-              <span className="font-semibold text-white">{item.title}</span>
+              <span className="font-semibold theme-text">{item.title}</span>
               <button
                 type="button"
-                className="text-[#888888] transition hover:text-white"
+                className="theme-text-muted transition hover:theme-text"
                 onClick={() => dismiss(item.id)}
                 aria-label="Dismiss notification"
               >
-                ×
+                Ã—
               </button>
             </div>
-            <p className="text-[#d4d4d4]">{item.message}</p>
-            <div className="mt-3 h-1.5 rounded-full bg-white/5">
+            <p className="theme-text-soft">{item.message}</p>
+            <div className="mt-3 h-1.5 rounded-full bg-black/5">
               <div
                 className={
                   item.type === "success"
-                    ? "h-full w-full rounded-full bg-[#FF6B35]"
+                    ? "h-full w-full rounded-full theme-bg-primary"
                     : item.type === "error"
                       ? "h-full w-full rounded-full bg-red-500"
-                      : "h-full w-full rounded-full bg-[#004E64]"
+                      : "h-full w-full rounded-full theme-bg-secondary"
                 }
               />
             </div>
@@ -93,3 +93,9 @@ export function useNotifications() {
 
   return context;
 }
+
+
+
+
+
+

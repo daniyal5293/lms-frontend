@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -13,7 +13,9 @@ import { Select } from "@/src/components/ui/Select";
 import { useNotifications } from "@/src/components/providers/NotificationProvider";
 import {
   listExamsByTeacherId,
+  listExamTypes,
   type Exam,
+  type ExamType,
 } from "@/src/lib/api/exams.api";
 import { listResultsByExamId } from "@/src/lib/api/exams.api";
 import { ApiError } from "@/src/lib/api/client";
@@ -33,13 +35,23 @@ const sectionId = (assignment: TeacherSectionCourse) =>
   assignment.SectionId ??
   assignment.sectionId ??
   assignment.Section?.SectionId ??
+  assignment.Section?.SectionID ??
+  assignment.Section?.Id ??
+  assignment.section?.SectionID ??
+  assignment.section?.Id ??
   assignment.section?.sectionId ??
   "";
 
+const normalizedId = (value: string) => value.trim().toLowerCase();
+
 const sectionName = (assignment: TeacherSectionCourse) =>
   assignment.Section?.SectionName ??
+  assignment.Section?.Name ??
+  assignment.Section?.name ??
   assignment.Section?.sectionName ??
   assignment.section?.SectionName ??
+  assignment.section?.Name ??
+  assignment.section?.name ??
   assignment.section?.sectionName ??
   "Section name unavailable";
 
@@ -65,10 +77,19 @@ const getExamTitle = (exam: Exam) =>
   exam.title ??
   "Untitled exam";
 
+const getReadableExamTitle = (exam: Exam) =>
+  getExamTitle(exam).replace(/\s+(?:for|of)\s+[0-9a-f]{8}-[0-9a-f-]{27,36}\b/i, "").trim() || "Untitled exam";
+
 const getExamTypeId = (exam: Exam) =>
   exam.ExamTypeId ??
   exam.examTypeId ??
   "";
+
+const getExamTypeLabel = (exam: Exam, examTypes: ExamType[]) => {
+  const examTypeId = getExamTypeId(exam).toLowerCase();
+  const examType = examTypes.find((item) => item.examTypeId.toLowerCase() === examTypeId);
+  return examType?.type ?? (exam.ExamType ?? exam.examType ?? "Exam type unavailable");
+};
 
 const getExamDate = (exam: Exam) =>
   exam.ExamDate ??
@@ -95,6 +116,7 @@ export default function TeacherExamsPage() {
   >([]);
 
   const [exams, setExams] = useState<Exam[]>([]);
+  const [examTypes, setExamTypes] = useState<ExamType[]>([]);
   const [uploadedExamIds, setUploadedExamIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [activeSectionId, setActiveSectionId] = useState("");
@@ -135,18 +157,20 @@ export default function TeacherExamsPage() {
         );
       }
 
-      const [assignmentData, examData] = await Promise.all([
+      const [assignmentData, examData, examTypeData] = await Promise.all([
         listTeacherSectionCoursesByTeacherId(teacherEntityId),
         listExamsByTeacherId(teacherEntityId),
+        listExamTypes(),
       ]);
 
       setAssignments(assignmentData);
       setExams(examData);
+      setExamTypes(examTypeData);
 
       const resultChecks = await Promise.all(
         examData.map(async (exam) => {
           const examId = getExamId(exam);
-          const assignment = assignmentData.find((item) => assignmentId(item) === getExamAssignmentId(exam));
+          const assignment = assignmentData.find((item) => normalizedId(assignmentId(item)) === normalizedId(getExamAssignmentId(exam)));
           const currentSectionId = assignment ? sectionId(assignment) : "";
           if (!examId || !currentSectionId) return [examId, false] as const;
           const results = await listResultsByExamId(examId).catch(() => []);
@@ -155,7 +179,7 @@ export default function TeacherExamsPage() {
       );
       setUploadedExamIds(new Set(resultChecks.filter(([, hasResults]) => hasResults).map(([id]) => id)));
 
-      const firstSectionId = sectionId(assignmentData[0]);
+      const firstSectionId = normalizedId(sectionId(assignmentData[0]));
 
       setActiveSectionId(firstSectionId);
       setSelectedAssignmentId(assignmentId(assignmentData[0]));
@@ -177,6 +201,7 @@ export default function TeacherExamsPage() {
 
       setAssignments([]);
       setExams([]);
+      setExamTypes([]);
       setActiveSectionId("");
       setSelectedAssignmentId("");
     } finally {
@@ -199,7 +224,7 @@ export default function TeacherExamsPage() {
     >();
 
     assignments.forEach((assignment) => {
-      const id = sectionId(assignment);
+      const id = normalizedId(sectionId(assignment));
 
       if (id && !uniqueSections.has(id)) {
         uniqueSections.set(id, assignment);
@@ -218,9 +243,9 @@ export default function TeacherExamsPage() {
       assignments
         .filter(
           (assignment) =>
-            sectionId(assignment) === activeSectionId
+            normalizedId(sectionId(assignment)) === normalizedId(activeSectionId)
         )
-        .map(assignmentId)
+          .map((assignment) => normalizedId(assignmentId(assignment)))
         .filter(Boolean)
     );
   }, [activeSectionId, assignments]);
@@ -232,23 +257,23 @@ export default function TeacherExamsPage() {
   const sectionExams = useMemo(() => {
     return exams.filter((exam) =>
       activeSectionAssignmentIds.has(
-        getExamAssignmentId(exam)
+        normalizedId(getExamAssignmentId(exam))
       )
     );
   }, [activeSectionAssignmentIds, exams]);
 
   const selectedAssignment = assignments.find(
-    (assignment) => assignmentId(assignment) === selectedAssignmentId,
+    (assignment) => normalizedId(assignmentId(assignment)) === normalizedId(selectedAssignmentId),
   );
 
   const handleAssignmentChange = (nextAssignmentId: string) => {
     setSelectedAssignmentId(nextAssignmentId);
 
     const assignment = assignments.find(
-      (item) => assignmentId(item) === nextAssignmentId,
+      (item) => normalizedId(assignmentId(item)) === normalizedId(nextAssignmentId),
     );
 
-    setActiveSectionId(assignment ? sectionId(assignment) : "");
+    setActiveSectionId(assignment ? normalizedId(sectionId(assignment)) : "");
   };
 
   /*
@@ -331,7 +356,7 @@ export default function TeacherExamsPage() {
                 My exams
               </h2>
 
-              <p className="mt-1 text-sm text-[#888888]">
+              <p className="mt-1 text-sm theme-text-muted">
                 Select a section to view its exams.
               </p>
             </div>
@@ -341,7 +366,7 @@ export default function TeacherExamsPage() {
             </Badge>
           </div>
 
-          <div className="mb-6 grid gap-4 rounded-xl border border-white/10 bg-[#111111] p-4 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-end">
+          <div className="mb-6 grid gap-4 rounded-xl border border-black/10 theme-bg-page p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
             <Select
               label="Assigned course and section"
               value={selectedAssignmentId}
@@ -385,34 +410,21 @@ export default function TeacherExamsPage() {
               Create exam
             </Button>
 
-            <Button
-              variant="secondary"
-              disabled={!selectedAssignment}
-              onClick={() =>
-                router.push(
-                  `/teacher/attendance?assignmentId=${encodeURIComponent(
-                    selectedAssignmentId,
-                  )}`,
-                )
-              }
-            >
-              Mark attendance
-            </Button>
           </div>
 
           {sections.length === 0 && !loading ? (
-            <p className="py-8 text-sm text-[#888888]">
+            <p className="py-8 text-sm theme-text-muted">
               No sections are available.
             </p>
           ) : (
             <>
               {/* SECTION NAVIGATION */}
-              <div className="mb-6 flex flex-wrap gap-2 border-b border-white/10 pb-4">
+              <div className="mb-6 flex flex-wrap gap-2 border-b border-black/10 pb-4">
                 {sections.map((assignment) => {
                   const id = sectionId(assignment);
                   const name = sectionName(assignment);
                   const active =
-                    id === activeSectionId;
+                    normalizedId(id) === normalizedId(activeSectionId);
 
                   return (
                     <button
@@ -425,7 +437,7 @@ export default function TeacherExamsPage() {
                         "rounded-lg px-4 py-2 text-sm font-medium transition",
                         active
                           ? "bg-white text-black"
-                          : "border border-white/10 bg-[#111111] text-[#aaaaaa] hover:text-white",
+                          : "border border-black/10 theme-bg-page theme-text-muted hover:theme-text",
                       ].join(" ")}
                     >
                       Section {name}
@@ -436,11 +448,11 @@ export default function TeacherExamsPage() {
 
               {/* EXAMS */}
               {loading ? (
-                <p className="py-8 text-sm text-[#888888]">
+                <p className="py-8 text-sm theme-text-muted">
                   Loading exams...
                 </p>
               ) : sectionExams.length === 0 ? (
-                <p className="py-8 text-sm text-[#888888]">
+                <p className="py-8 text-sm theme-text-muted">
                   No exams found for this section.
                 </p>
               ) : (
@@ -453,22 +465,22 @@ export default function TeacherExamsPage() {
                           exam
                         )}`
                       }
-                      className="rounded-xl border border-white/10 bg-[#111111] p-4"
+                      className="rounded-xl border border-black/10 theme-bg-page p-4"
                     >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
                           <h3 className="font-semibold">
-                            {getExamTitle(exam)}
+                            {getReadableExamTitle(exam)}
                           </h3>
 
-                          <div className="mt-2 flex flex-wrap gap-2 text-sm text-[#888888]">
+                          <div className="mt-2 flex flex-wrap gap-2 text-sm theme-text-muted">
                             <span>
                               Date:{" "}
                               {getExamDate(exam) ||
                                 "Date unavailable"}
                             </span>
 
-                            <span>•</span>
+                            <span>â€¢</span>
 
                             <span>
                               Total marks:{" "}
@@ -490,10 +502,8 @@ export default function TeacherExamsPage() {
                         </Badge>
                       </div>
 
-                      <p className="mt-3 text-xs text-[#666666]">
-                        Exam Type ID:{" "}
-                        {getExamTypeId(exam) ||
-                          "Unavailable"}
+                      <p className="mt-3 text-xs theme-text-muted">
+                        Exam type: {getExamTypeLabel(exam, examTypes)}
                       </p>
 
                       {/* ACTIONS */}
@@ -526,3 +536,8 @@ export default function TeacherExamsPage() {
     </ProtectedRoute>
   );
 }
+
+
+
+
+

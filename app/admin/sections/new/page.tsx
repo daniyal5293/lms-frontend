@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -62,7 +62,7 @@ export default function NewSectionPage() {
             <Input label="Section name" value={form.sectionName} onChange={(event) => setForm((current) => ({ ...current, sectionName: event.target.value }))} />
             <Input label="Intermediate class" placeholder="XI" value={form.IntermediateClass} onChange={(event) => setForm((current) => ({ ...current, IntermediateClass: event.target.value }))} />
             <Input label="Start date" type="datetime-local" value={form.StartDate} onChange={(event) => setForm((current) => ({ ...current, StartDate: event.target.value }))} />
-            <label className="flex items-center gap-3 text-sm text-[#d4d4d4]">
+            <label className="flex items-center gap-3 text-sm theme-text-soft">
               <input type="checkbox" checked={form.IsActive} onChange={(event) => setForm((current) => ({ ...current, IsActive: event.target.checked }))} />
               Active section
             </label>
@@ -78,3 +78,9 @@ export default function NewSectionPage() {
     </ProtectedRoute>
   );
 }
+
+
+
+
+
+

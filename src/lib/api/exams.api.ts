@@ -95,6 +95,13 @@ export async function listExamTypes() {
 export type SectionStudent = {
   studentId: string;
   StudentId?: string;
+  userId?: string | null;
+  email?: string | null;
+  section?: string | null;
+  phoneNumber?: string | null;
+  dateOfBirth?: string | null;
+  enrollmentDate?: string | null;
+  cnic?: string | null;
   enrollmentId: string;
   EnrollmentId?: string;
   studentEnrollmentId?: string;
@@ -121,6 +128,19 @@ export async function listStudentsBySectionId(sectionId: string) {
       student.studentEnrollmentId ??
       student.StudentEnrollmentId ??
       "",
+    fullName: student.fullName ?? student.FullName ?? "Unnamed student",
+  }));
+}
+
+export async function listStudentDetailsBySectionId(sectionId: string) {
+  const response = await apiFetch<{ students: SectionStudent[] }>(
+    `/api/student/student-details/${encodeURIComponent(sectionId)}`,
+  );
+
+  return (response.students ?? []).map((student) => ({
+    ...student,
+    studentId: student.studentId ?? student.StudentId ?? "",
+    enrollmentId: student.enrollmentId ?? "",
     fullName: student.fullName ?? student.FullName ?? "Unnamed student",
   }));
 }
@@ -173,7 +193,7 @@ export type StudentResult = {
 export async function createStudentResult(
   payload: CreateStudentResultPayload
 ) {
-  return apiFetch<{ examResultId?: string }>("/api/examresults", {
+  return apiFetch<{ examResultId?: string }>("/api/examresult", {
     method: "POST",
     body: JSON.stringify({
       examId: payload.examId,
@@ -186,7 +206,7 @@ export async function createStudentResult(
 }
 
 export async function uploadBulkStudentResults(payload: CreateStudentResultPayload[]) {
-  return apiFetch<unknown>("/api/examresults/bulk", {
+  return apiFetch<unknown>("/api/examresult/bulk", {
     method: "POST",
     body: JSON.stringify(payload),
   });
@@ -200,7 +220,7 @@ export async function updateBulkStudentResults(payload: CreateStudentResultPaylo
 }
 
 export async function getStudentResultById(id: string) {
-  return apiFetch<StudentResult>(`/api/examresults/${encodeURIComponent(id)}`);
+  return apiFetch<StudentResult>(`/api/examresult/${encodeURIComponent(id)}`);
 }
 
 export async function listResultsByExamId(examId: string) {
@@ -229,12 +249,12 @@ export async function listResultsByExamId(examId: string) {
  */
 export async function listResultsByStudentId(studentId: string) {
   return apiFetch<StudentResult[]>(
-    `/api/examresults/student/${encodeURIComponent(studentId)}`
+    `/api/examresult/student/${encodeURIComponent(studentId)}`
   );
 }
 
 export async function deleteStudentResult(id: string) {
-  return apiFetch<void>(`/api/examresults/${encodeURIComponent(id)}`, {
+  return apiFetch<void>(`/api/examresult/${encodeURIComponent(id)}`, {
     method: "DELETE",
   });
 }

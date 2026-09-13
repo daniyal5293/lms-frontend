@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -83,21 +83,21 @@ export default function AdminSectionsPage() {
       </Card>
 
       <Card>
-        {loading ? <div className="text-sm text-[#888888]">Loading sections...</div> : filteredSections.length === 0 ? (
+        {loading ? <div className="text-sm theme-text-muted">Loading sections...</div> : filteredSections.length === 0 ? (
           <div className="py-8 text-center">
-            <h3 className="text-lg font-semibold text-white">No sections found</h3>
-            <p className="mt-2 text-sm text-[#888888]">There are currently no sections available.</p>
+            <h3 className="text-lg font-semibold theme-text">No sections found</h3>
+            <p className="mt-2 text-sm theme-text-muted">There are currently no sections available.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm text-white">
-              <thead className="border-b border-white/10">
+            <table className="min-w-full text-left text-sm theme-text">
+              <thead className="border-b border-black/10">
                 <tr>
-                  <th className="px-3 py-3 font-medium text-[#888888]">Section</th>
-                  <th className="px-3 py-3 font-medium text-[#888888]">Class</th>
-                  <th className="px-3 py-3 font-medium text-[#888888]">Start date</th>
-                  <th className="px-3 py-3 font-medium text-[#888888]">Status</th>
-                  <th className="px-3 py-3 font-medium text-[#888888]">Actions</th>
+                  <th className="px-3 py-3 font-medium theme-text-muted">Section</th>
+                  <th className="px-3 py-3 font-medium theme-text-muted">Class</th>
+                  <th className="px-3 py-3 font-medium theme-text-muted">Start date</th>
+                  <th className="px-3 py-3 font-medium theme-text-muted">Status</th>
+                  <th className="px-3 py-3 font-medium theme-text-muted">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -108,15 +108,15 @@ export default function AdminSectionsPage() {
                   const startDate = section.StartDate ?? section.startDate;
                   const isActive = section.IsActive ?? section.isActive ?? false;
                   return (
-                    <tr key={sectionId} className="border-b border-white/5">
-                      <td className="px-3 py-3 font-medium text-white">{sectionName}</td>
-                      <td className="px-3 py-3 text-[#d4d4d4]">{intermediateClass}</td>
-                      <td className="px-3 py-3 text-[#d4d4d4]">{startDate ? new Date(startDate).toLocaleString() : "Not provided"}</td>
-                      <td className="px-3 py-3 text-[#d4d4d4]">{isActive ? "Active" : "Inactive"}</td>
+                    <tr key={sectionId} className="border-b border-black/5">
+                      <td className="px-3 py-3 font-medium theme-text">{sectionName}</td>
+                      <td className="px-3 py-3 theme-text-soft">{intermediateClass}</td>
+                      <td className="px-3 py-3 theme-text-soft">{startDate ? new Date(startDate).toLocaleString() : "Not provided"}</td>
+                      <td className="px-3 py-3 theme-text-soft">{isActive ? "Active" : "Inactive"}</td>
                       <td className="px-3 py-3">
                         <div className="flex flex-wrap gap-2">
-                          <button type="button" onClick={() => router.push(`/admin/sections/${sectionId}`)} className="text-[#FF6B35] underline underline-offset-4">View</button>
-                          <button type="button" onClick={() => router.push(`/admin/sections/${sectionId}/edit`)} className="text-[#d4d4d4] underline underline-offset-4">Edit</button>
+                          <button type="button" onClick={() => router.push(`/admin/sections/${sectionId}`)} className="theme-text-primary underline underline-offset-4">View</button>
+                          <button type="button" onClick={() => router.push(`/admin/sections/${sectionId}/edit`)} className="theme-text-soft underline underline-offset-4">Edit</button>
                           <button type="button" onClick={() => handleDelete(section)} className="text-red-300 underline underline-offset-4">Delete</button>
                         </div>
                       </td>
@@ -132,3 +132,9 @@ export default function AdminSectionsPage() {
     </ProtectedRoute>
   );
 }
+
+
+
+
+
+

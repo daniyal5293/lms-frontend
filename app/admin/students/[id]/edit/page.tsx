@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -40,6 +40,6 @@ export default function EditStudentPage() {
     try { await updateStudent(studentId, form); notify("success", "Student updated", "The student record was updated successfully."); router.push(`/admin/students/${studentId}`); } catch (error) { notify("error", "Update failed", error instanceof ApiError ? error.message : "Unable to update student."); } finally { setSubmitting(false); }
   };
 
-  if (loading) return <AppShell><div className="py-10 text-center text-[#888888]">Loading student...</div></AppShell>;
+  if (loading) return <AppShell><div className="py-10 text-center theme-text-muted">Loading student...</div></AppShell>;
   return <ProtectedRoute allowedRoles={["Admin"]}><AppShell><PageHeader title="Edit Student" description="Update student contact and enrollment details." /><Card><form className="space-y-6" onSubmit={submit} noValidate><div className="grid gap-5 md:grid-cols-2"><Input label="Full name" value={form.fullName} onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))} /><Input label="Email" type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} /><Input label="Phone number" value={form.phoneNumber} onChange={(event) => setForm((current) => ({ ...current, phoneNumber: event.target.value }))} /><Input label="CNIC" value={form.cnic} onChange={(event) => setForm((current) => ({ ...current, cnic: event.target.value }))} /><Input label="Date of birth" type="date" value={form.dateOfBirth} onChange={(event) => setForm((current) => ({ ...current, dateOfBirth: event.target.value }))} /><Input label="Enrollment date" type="date" value={form.enrollmentDate} onChange={(event) => setForm((current) => ({ ...current, enrollmentDate: event.target.value }))} /><Select label="Section" value={form.sectionId} onChange={(event) => setForm((current) => ({ ...current, sectionId: event.target.value }))}><option value="">Select a section</option>{sections.map((section) => { const id = section.Id ?? section.id ?? section.sectionId ?? ""; return <option key={id} value={id}>{section.Name ?? section.sectionName ?? id}</option>; })}</Select></div><div className="flex justify-end gap-3"><Button type="button" variant="ghost" onClick={() => router.back()}>Cancel</Button><Button type="submit" loading={submitting}>{submitting ? "Saving..." : "Save Changes"}</Button></div></form></Card></AppShell></ProtectedRoute>;
 }

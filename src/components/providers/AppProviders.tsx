@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { AuthProvider } from "@/src/components/providers/AuthProvider";
 import { NotificationProvider } from "@/src/components/providers/NotificationProvider";
@@ -11,3 +11,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
     </AuthProvider>
   );
 }
+
+
+
+
+
+

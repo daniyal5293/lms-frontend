@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -291,7 +291,7 @@ export default function UploadExamResultsPage() {
                 Student Results
               </h2>
 
-              <p className="mt-1 text-sm text-[#888888]">
+              <p className="mt-1 text-sm theme-text-muted">
                 Total marks:{" "}
                 <span className="text-white">
                   {totalMarks}
@@ -309,11 +309,11 @@ export default function UploadExamResultsPage() {
           </div>
 
           {loading ? (
-            <p className="py-10 text-sm text-[#888888]">
+            <p className="py-10 text-sm theme-text-muted">
               Loading students...
             </p>
           ) : students.length === 0 ? (
-            <p className="py-10 text-sm text-[#888888]">
+            <p className="py-10 text-sm theme-text-muted">
               No students were found in this section.
             </p>
           ) : (
@@ -326,23 +326,23 @@ export default function UploadExamResultsPage() {
                 <table className="min-w-full text-left text-sm">
                   <thead className="border-b border-white/10">
                     <tr>
-                      <th className="px-4 py-3 text-[#888888]">
+                      <th className="px-4 py-3 theme-text-muted">
                         Student
                       </th>
 
-                      <th className="px-4 py-3 text-[#888888]">
+                      <th className="px-4 py-3 theme-text-muted">
                         Total Marks
                       </th>
 
-                      <th className="px-4 py-3 text-[#888888]">
+                      <th className="px-4 py-3 theme-text-muted">
                         Obtain Marks
                       </th>
 
-                      <th className="px-4 py-3 text-[#888888]">
+                      <th className="px-4 py-3 theme-text-muted">
                         Absent
                       </th>
 
-                      <th className="px-4 py-3 text-[#888888]">
+                      <th className="px-4 py-3 theme-text-muted">
                         Remarks
                       </th>
                     </tr>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -139,52 +139,56 @@ export default function AdminTeachersPage() {
 
       <Card>
         {loading ? (
-          <div className="text-sm text-[#888888]">Loading teachers...</div>
+          <div className="text-sm theme-text-muted">Loading teachers...</div>
         ) : filteredTeachers.length === 0 ? (
           <div className="py-8 text-center">
-            <h3 className="text-lg font-semibold text-white">No teachers found</h3>
-            <p className="mt-2 text-sm text-[#888888]">No teacher records match your search.</p>
+            <h3 className="text-lg font-semibold theme-text">No teachers found</h3>
+            <p className="mt-2 text-sm theme-text-muted">No teacher records match your search.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm text-white">
-              <thead className="border-b border-white/10">
+            <table className="min-w-full text-left text-sm theme-text">
+              <thead className="border-b border-black/10">
                 <tr>
-                  <th className="px-3 py-3 font-medium text-[#888888]">Name</th>
-                  <th className="px-3 py-3 font-medium text-[#888888]">Email</th>
-                  <th className="px-3 py-3 font-medium text-[#888888]">Department</th>
-                  <th className="px-3 py-3 font-medium text-[#888888]">Status</th>
-                  <th className="px-3 py-3 font-medium text-[#888888]">Hire</th>
-                  <th className="px-3 py-3 font-medium text-[#888888]">Actions</th>
+                  <th className="px-3 py-3 font-medium theme-text-muted">Name</th>
+                  <th className="px-3 py-3 font-medium theme-text-muted">Email</th>
+                  <th className="px-3 py-3 font-medium theme-text-muted">Department</th>
+                  <th className="px-3 py-3 font-medium theme-text-muted">Status</th>
+                  <th className="px-3 py-3 font-medium theme-text-muted">Hire</th>
+                  <th className="px-3 py-3 font-medium theme-text-muted">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredTeachers.map((teacher) => (
-                  <tr key={teacher.Id ?? teacher.id ?? teacher.teacher_id ?? `${teacher.Email}-${teacher.Fullname ?? teacher.FullName ?? teacher.fullname}`} className="border-b border-white/5">
+                  <tr key={teacher.Id ?? teacher.id ?? teacher.teacher_id ?? `${teacher.Email}-${teacher.Fullname ?? teacher.FullName ?? teacher.fullname}`} className="border-b border-black/5">
                     <td className="px-3 py-3">
                       <div className="font-medium">{teacher.Fullname ?? teacher.FullName ?? teacher.fullname ?? "Unknown"}</div>
                     </td>
-                    <td className="px-3 py-3 text-[#d4d4d4]">{teacher.Email ?? teacher.email ?? "Not provided"}</td>
-                    <td className="px-3 py-3 text-[#d4d4d4]">{teacher.Department ?? teacher.department ?? "Not provided"}</td>
+                    <td className="px-3 py-3 theme-text-soft">{teacher.Email ?? teacher.email ?? "Not provided"}</td>
+                    <td className="px-3 py-3 theme-text-soft">{teacher.Department ?? teacher.department ?? "Not provided"}</td>
                     <td className="px-3 py-3">
                       <Badge tone={teacher.Active ?? teacher.IsActive ?? teacher.isActive ? "success" : "warning"}>
                         {teacher.Active ?? teacher.IsActive ?? teacher.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </td>
-                    <td className="px-3 py-3 text-[#d4d4d4]">{formatDate(teacher.HireDate ?? undefined)}</td>
+                    <td className="px-3 py-3 theme-text-soft">{formatDate(teacher.HireDate ?? undefined)}</td>
                     <td className="px-3 py-3">
                       <div className="flex flex-wrap gap-2">
-                          <button type="button" onClick={() => router.push(`/admin/teachers/${teacher.Id ?? teacher.id ?? teacher.teacher_id}`)} className="text-[#FF6B35] underline underline-offset-4">
+                          <button type="button" onClick={() => router.push(`/admin/teachers/${teacher.Id ?? teacher.id ?? teacher.teacher_id}`)} className="theme-text-primary underline underline-offset-4">
                           View
                         </button>
-                          <button type="button" onClick={() => router.push(`/admin/teachers/${teacher.Id ?? teacher.id ?? teacher.teacher_id}/edit`)} className="text-[#d4d4d4] underline underline-offset-4">
+                          <button type="button" onClick={() => router.push(`/admin/teachers/${teacher.Id ?? teacher.id ?? teacher.teacher_id}/edit`)} className="theme-text-soft underline underline-offset-4">
                           Edit
                         </button>
                         <button type="button" onClick={() => handleDelete(teacher)} className="text-red-300 underline underline-offset-4">
                           Delete
                         </button>
-                        {(teacher.Active ?? teacher.IsActive ?? teacher.isActive) ? (
-                          <button type="button" onClick={() => handlePromote(teacher)} className="text-[#7dd3fc] underline underline-offset-4">
+                        {(teacher.Role ?? teacher.role ?? "").toUpperCase() === "HOD" ? (
+                          <button type="button" onClick={() => handleDemote(teacher)} className="text-amber-300 underline underline-offset-4">
+                            Demote
+                          </button>
+                        ) : (teacher.Active ?? teacher.IsActive ?? teacher.isActive) ? (
+                          <button type="button" onClick={() => handlePromote(teacher)} className="theme-text-secondary underline underline-offset-4">
                             Promote
                           </button>
                         ) : (
@@ -192,11 +196,6 @@ export default function AdminTeachersPage() {
                             Restore
                           </button>
                         )}
-                        {((teacher.Role ?? "Teacher") === "HOD") || (teacher.FullName?.includes("HOD") ?? false) ? (
-                          <button type="button" onClick={() => handleDemote(teacher)} className="text-amber-300 underline underline-offset-4">
-                            Demote
-                          </button>
-                        ) : null}
                       </div>
                     </td>
                   </tr>
@@ -210,3 +209,9 @@ export default function AdminTeachersPage() {
     </ProtectedRoute>
   );
 }
+
+
+
+
+
+

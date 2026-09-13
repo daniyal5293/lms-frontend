@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useState } from "react";
 import { ProtectedRoute } from "@/src/components/auth/ProtectedRoute";
@@ -62,12 +62,12 @@ export default function RolesPage() {
       <AppShell>
         <PageHeader title="Roles" description="Manage available application roles and access groups." />
 
-      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          {loading ? <div className="text-sm text-[#888888]">Loading roles...</div> : (
+          {loading ? <div className="text-sm theme-text-muted">Loading roles...</div> : (
             <div className="flex flex-wrap gap-3">
-              {roles.length === 0 ? <p className="text-[#888888]">No roles available.</p> : roles.map((role) => (
-                <span key={role} className="rounded-full border border-white/10 bg-[#111111] px-3 py-2 text-sm text-white">{role}</span>
+              {roles.length === 0 ? <p className="theme-text-muted">No roles available.</p> : roles.map((role) => (
+                <span key={role} className="rounded-full border border-black/10 theme-bg-page px-3 py-2 text-sm theme-text">{role}</span>
               ))}
             </div>
           )}
@@ -84,3 +84,9 @@ export default function RolesPage() {
     </ProtectedRoute>
   );
 }
+
+
+
+
+
+

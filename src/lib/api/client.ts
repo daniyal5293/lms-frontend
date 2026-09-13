@@ -1,4 +1,4 @@
-import type { ApiErrorData } from "@/src/lib/types";
+import { normalizeUser, type ApiErrorData } from "@/src/lib/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
@@ -44,7 +44,7 @@ export function getStoredUser() {
   if (!payload) return null;
 
   try {
-    return JSON.parse(payload);
+    return normalizeUser(JSON.parse(payload));
   } catch {
     return null;
   }
@@ -79,9 +79,10 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
   const token = getStoredAccessToken();
   const isLoginRequest = path === "/api/auth/login";
   const isRegisterRequest = path === "/api/auth/register";
+  const isPasswordResetRequest = path === "/api/auth/send-reset-code" || path === "/api/auth/verify-and-reset";
   const isLogoutRequest = path === "/api/auth/logout";
-  const shouldAttachToken = !isLoginRequest && !isRegisterRequest;
-  const shouldRefreshOnUnauthorized = !isLoginRequest && !isRegisterRequest && !isLogoutRequest;
+  const shouldAttachToken = !isLoginRequest && !isRegisterRequest && !isPasswordResetRequest;
+  const shouldRefreshOnUnauthorized = !isLoginRequest && !isRegisterRequest && !isPasswordResetRequest && !isLogoutRequest;
 
   const headers = new Headers(options.headers ?? {});
   headers.set("Accept", "application/json");

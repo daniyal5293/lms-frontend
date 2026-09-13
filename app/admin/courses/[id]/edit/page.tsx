@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -67,7 +67,7 @@ export default function EditCoursePage() {
     }
   };
 
-  if (loading) return <AppShell><div className="py-10 text-center text-[#888888]">Loading course...</div></AppShell>;
+  if (loading) return <AppShell><div className="py-10 text-center theme-text-muted">Loading course...</div></AppShell>;
 
   return (
     <AppShell>
@@ -93,3 +93,4 @@ export default function EditCoursePage() {
     </AppShell>
   );
 }
+

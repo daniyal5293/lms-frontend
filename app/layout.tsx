@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppProviders } from "@/src/components/providers/AppProviders";
 import "./globals.css";
@@ -25,9 +25,15 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full bg-[#111111] text-white antialiased">
+      <body className="min-h-full theme-bg-page theme-text antialiased">
         <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );
 }
+
+
+
+
+
+

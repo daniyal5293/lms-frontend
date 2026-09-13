@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -59,15 +59,15 @@ export default function NewCoursePage() {
             <Input label="Course name" value={form.CourseName} onChange={(event) => setForm((current) => ({ ...current, CourseName: event.target.value }))} />
             <Input label="Duration" value={form.CourseDuration} onChange={(event) => setForm((current) => ({ ...current, CourseDuration: event.target.value }))} />
             <div className="md:col-span-2">
-              <label className="block w-full text-sm text-white" htmlFor="course-description">
-                <span className="mb-2 block text-[#d4d4d4]">Description</span>
+              <label className="block w-full text-sm theme-text" htmlFor="course-description">
+                <span className="mb-2 block theme-text-soft">Description</span>
                 <textarea
                   id="course-description"
                   value={form.CourseDescription}
                   onChange={(event) => setForm((current) => ({ ...current, CourseDescription: event.target.value }))}
                   rows={5}
                   placeholder="Describe the course content and learning outcomes"
-                  className="w-full rounded-xl border border-white/10 bg-[#1a1a1a] px-3 py-2.5 text-white placeholder:text-[#888888] focus:border-[#FF6B35] focus:outline-none"
+                  className="w-full rounded-xl border border-black/10 theme-bg-input px-3 py-2.5 theme-text placeholder:theme-text-muted focus:theme-border-primary focus:outline-none"
                 />
               </label>
             </div>    
@@ -82,3 +82,9 @@ export default function NewCoursePage() {
     </AppShell>
   );
 }
+
+
+
+
+
+

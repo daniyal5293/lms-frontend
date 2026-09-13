@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/src/components/providers/AuthProvider";
@@ -98,6 +98,8 @@ export default function TeacherAttendancePage() {
   const today = new Date();
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(today.getMonth());
+  const [selectedDate, setSelectedDate] = useState(today.toISOString().slice(0, 10));
+  const [includeWeekends, setIncludeWeekends] = useState(false);
   const [statusByCell, setStatusByCell] = useState<
     Record<string, AttendanceStatus>
   >({});
@@ -114,6 +116,7 @@ export default function TeacherAttendancePage() {
   const [submitting, setSubmitting] = useState(false);
   const attendanceRequestId = useRef(0);
   const matrixScrollRef = useRef<HTMLDivElement>(null);
+  const preparedDateRef = useRef<string | null>(null);
   const [editingRemarkCell, setEditingRemarkCell] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
 
@@ -121,11 +124,22 @@ export default function TeacherAttendancePage() {
     () => getMonthDates(selectedYear, selectedMonth),
     [selectedMonth, selectedYear],
   );
+  const visibleDates = useMemo(
+    () => monthDates.filter((date) => {
+      if (includeWeekends) return true;
+      const day = new Date(`${date}T12:00:00`).getDay();
+      return day !== 0 && day !== 6;
+    }),
+    [includeWeekends, monthDates],
+  );
   const todayIso = new Date().toISOString().slice(0, 10);
   const monthLabel = new Intl.DateTimeFormat("en", {
     month: "long",
     year: "numeric",
   }).format(new Date(selectedYear, selectedMonth, 1));
+  const activeDate = visibleDates.includes(selectedDate)
+    ? selectedDate
+    : visibleDates.find((date) => date <= todayIso) ?? visibleDates[0] ?? "";
 
   useEffect(() => {
     if (!matrixScrollRef.current || !monthDates.includes(todayIso)) return;
@@ -244,6 +258,7 @@ export default function TeacherAttendancePage() {
 
     const loadMonthlyAttendance = async () => {
       const requestId = ++attendanceRequestId.current;
+      preparedDateRef.current = null;
       setLoadingAttendance(true);
       setStatusByCell({});
       setRemarksByCell({});
@@ -252,7 +267,7 @@ export default function TeacherAttendancePage() {
 
       try {
         const results = await Promise.allSettled(
-          monthDates.map((date) => getCourseAttendance(assignmentId, date)),
+          visibleDates.map((date) => getCourseAttendance(assignmentId, date)),
         );
 
         if (requestId !== attendanceRequestId.current) return;
@@ -274,7 +289,7 @@ export default function TeacherAttendancePage() {
             const enrollmentId = record.StudentEnrollmentId;
             if (!enrollmentId) return;
 
-            const date = monthDates[index];
+            const date = visibleDates[index];
             const key = getCellKey(date, enrollmentId);
             nextStatuses[key] = getAttendanceStatus(record.Status);
             nextRemarks[key] = record.Remarks ?? "";
@@ -301,7 +316,30 @@ export default function TeacherAttendancePage() {
     };
 
     void loadMonthlyAttendance();
-  }, [assignmentId, monthDates, notify, reloadToken]);
+  }, [assignmentId, notify, reloadToken, visibleDates]);
+
+  useEffect(() => {
+    if (!activeDate || activeDate > todayIso || loadingAttendance || students.length === 0) return;
+    if (preparedDateRef.current === activeDate) return;
+
+    preparedDateRef.current = activeDate;
+    setStatusByCell((current) => {
+      const next = { ...current };
+      students.forEach((student) => {
+        const key = getCellKey(activeDate, getId(student));
+        if (!next[key]) next[key] = "Present";
+      });
+      return next;
+    });
+    setDirtyCells((current) => {
+      const next = new Set(current);
+      students.forEach((student) => {
+        const key = getCellKey(activeDate, getId(student));
+        if (!attendanceIdsByCell[key]) next.add(key);
+      });
+      return next;
+    });
+  }, [activeDate, attendanceIdsByCell, loadingAttendance, students, todayIso]);
 
   const sectionStudents = useMemo(() => students, [students]);
 
@@ -339,7 +377,7 @@ export default function TeacherAttendancePage() {
         const date = key.slice(0, separatorIndex);
         const enrollmentId = key.slice(separatorIndex + 1);
         const status = statusByCell[key];
-        if (!status || date > todayIso) return;
+        if (!status || date > todayIso || date !== activeDate) return;
 
         const entry = {
           StudentEnrollmentId: enrollmentId,
@@ -409,7 +447,7 @@ export default function TeacherAttendancePage() {
             className="space-y-4"
             onSubmit={submit}
           >
-            <div className="grid gap-3 md:grid-cols-[minmax(0,1.3fr)_8rem_9rem]">
+            <div className="grid gap-3 md:grid-cols-3">
               <Select
                 label="Course and section"
                 value={assignmentId}
@@ -470,36 +508,70 @@ export default function TeacherAttendancePage() {
               </Select>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm">
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="w-48">
+                <Select
+                  label="Active date"
+                  value={activeDate}
+                  onChange={(event) => setSelectedDate(event.target.value)}
+                  disabled={loadingAttendance || submitting || visibleDates.length === 0}
+                >
+                  {visibleDates.map((date) => {
+                    const day = new Date(`${date}T12:00:00`);
+                    return <option key={date} value={date}>{day.toLocaleDateString("en", { weekday: "short", month: "short", day: "numeric" })}</option>;
+                  })}
+                </Select>
+              </div>
+              <label className="flex min-h-10 items-center gap-2 pb-2 text-sm theme-text-soft">
+                <input
+                  type="checkbox"
+                  checked={includeWeekends}
+                  onChange={(event) => setIncludeWeekends(event.target.checked)}
+                  disabled={loadingAttendance || submitting}
+                  className="theme-accent h-4 w-4"
+                />
+                Include weekends
+              </label>
+              <Button
+                type="submit"
+                loading={submitting || loadingAttendance}
+                disabled={loadingAttendance}
+                className="mb-0.5 rounded-lg px-3 py-2 text-sm"
+              >
+                {submitting ? "Saving..." : "Save attendance"}
+              </Button>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-black/10 bg-black/5 px-3 py-2 text-sm">
               <div>
-                <p className="font-medium text-white">
+                <p className="font-medium theme-text">
                   {loadingAttendance
                     ? `Loading ${monthLabel}...`
                     : `${monthLabel} attendance`}
                 </p>
-                <p className="mt-1 text-xs text-[#888888]">
+                <p className="mt-1 text-xs theme-text-muted">
                   Choose a status in any day column, add a remark, then save the changed cells.
                 </p>
               </div>
-              <span className="text-[#888888]">
+              <span className="theme-text-muted">
                 {dirtyCells.size} unsaved change{dirtyCells.size === 1 ? "" : "s"}
               </span>
             </div>
 
             {sectionStudents.length === 0 ? (
-              <p className="py-8 text-sm text-[#888888]">
+              <p className="py-8 text-sm theme-text-muted">
                 No students with enrollment records were found
                 for this section.
               </p>
             ) : (
-              <div ref={matrixScrollRef} className="overflow-x-auto rounded-lg border border-white/10">
-                <table className="min-w-max text-left text-xs">
-                  <thead className="border-b border-white/10">
+              <div ref={matrixScrollRef} className="isolate max-h-screen min-w-0 overflow-auto rounded-lg border border-black/10">
+                <table className="min-w-max border-separate border-spacing-0 text-left text-xs">
+                  <thead className="border-b border-black/10">
                     <tr>
-                      <th scope="col" className="sticky left-0 z-20 min-w-44 bg-[#171717] px-3 py-2 text-left text-xs uppercase tracking-wide text-[#888888]">
+                      <th scope="col" className="sticky left-0 top-0 z-40 w-44 min-w-44 max-w-44 border-b border-r border-black/10 theme-bg-surface px-3 py-2 text-left text-xs uppercase tracking-wide theme-text-muted shadow-lg">
                         Students
                       </th>
-                      {monthDates.map((date) => {
+                      {visibleDates.map((date) => {
                         const day = new Date(`${date}T12:00:00`);
                         const isToday = date === todayIso;
                         const isFuture = date > todayIso;
@@ -507,10 +579,10 @@ export default function TeacherAttendancePage() {
                           <th
                             key={date}
                             data-date={date}
-                            className={`min-w-28 border-l border-white/10 px-2 py-2 text-center ${isToday ? "bg-[#FF6B35]/15" : ""} ${isFuture ? "opacity-40" : ""}`}
+                            className={`sticky top-0 z-30 min-w-16 border-b border-l border-black/10 theme-bg-surface px-1 py-2 text-center ${isToday ? "theme-bg-primary-soft" : ""} ${isFuture || date !== activeDate ? "opacity-40" : ""}`}
                           >
-                            <span className="block font-semibold text-white">{day.getDate()}</span>
-                            <span className="block uppercase tracking-wide text-[10px] text-[#888888]">
+                            <span className="block font-semibold theme-text">{day.getDate()}</span>
+                            <span className="block text-xs uppercase tracking-wide theme-text-muted">
                               {new Intl.DateTimeFormat("en", { weekday: "short" }).format(day)}
                             </span>
                           </th>
@@ -526,47 +598,48 @@ export default function TeacherAttendancePage() {
                       return (
                         <tr
                           key={id}
-                          className="border-b border-white/5"
+                          className="border-b border-black/5"
                         >
                           <td
                             scope="row"
-                            className="sticky left-0 z-20 bg-[#171717] px-3 py-2"
+                            className="sticky left-0 z-20 w-44 min-w-44 max-w-44 border-b border-r border-black/5 theme-bg-surface px-3 py-2 shadow-lg"
                           >
-                            <span className="font-medium text-white">
+                            <span className="block truncate font-medium theme-text" title={getName(student)}>
                               {getName(student)}
                             </span>
                           </td>
-                          {monthDates.map((date) => {
+                          {visibleDates.map((date) => {
                             const key = getCellKey(date, id);
                             const isFuture = date > todayIso;
+                            const isActiveDate = date === activeDate;
                             return (
                               <td
                                 key={key}
-                                tabIndex={isFuture ? -1 : 0}
+                                tabIndex={isFuture || !isActiveDate ? -1 : 0}
                                 onDoubleClick={() => {
-                                  if (!isFuture) setEditingRemarkCell(key);
+                                  if (!isFuture && isActiveDate) setEditingRemarkCell(key);
                                 }}
                                 onKeyDown={(event) => {
-                                  if ((event.key === "Enter" || event.key === " ") && !isFuture) {
+                                  if ((event.key === "Enter" || event.key === " ") && !isFuture && isActiveDate) {
                                     event.preventDefault();
                                     setEditingRemarkCell(key);
                                   }
                                 }}
                                 title="Double-click or press Enter to edit remark"
-                                className={`border-l border-white/10 px-1.5 py-1.5 align-top ${date === todayIso ? "bg-[#FF6B35]/[0.04]" : ""}`}
+                                className={`min-w-16 border-b border-l border-black/10 px-0.5 py-1 align-top ${date === todayIso ? "theme-bg-primary-tint" : ""} ${!isActiveDate ? "theme-bg-page-muted" : ""}`}
                               >
                                 <Select
                                   aria-label={`${getName(student)} status for ${date}`}
                                   value={statusByCell[key] ?? ""}
-                                  disabled={loadingAttendance || submitting || isFuture}
-                                  className="w-28 rounded-md px-1.5 py-1 text-xs"
+                                  disabled={loadingAttendance || submitting || isFuture || !isActiveDate}
+                                  className="w-14 rounded-md px-0.5 py-1 text-xs"
                                   onChange={(event) => {
                                     const value = event.target.value as AttendanceStatus;
                                     setStatusByCell((current) => ({ ...current, [key]: value }));
                                     setDirtyCells((current) => new Set(current).add(key));
                                   }}
                                 >
-                                  <option value="">Not marked</option>
+                                  <option value="">-</option>
                                   {statuses.map((status) => <option key={status} value={status}>{statusLabels[status]}</option>)}
                                 </Select>
                                 {editingRemarkCell === key ? (
@@ -574,8 +647,8 @@ export default function TeacherAttendancePage() {
                                     aria-label={`${getName(student)} remark for ${date}`}
                                     autoFocus
                                     value={remarksByCell[key] ?? ""}
-                                    disabled={loadingAttendance || submitting || isFuture}
-                                    className="mt-1 w-28 rounded-md px-1.5 py-1 text-[11px]"
+                                    disabled={loadingAttendance || submitting || isFuture || !isActiveDate}
+                                    className="mt-1 w-28 rounded-md px-1.5 py-1 text-xs"
                                     onBlur={() => setEditingRemarkCell(null)}
                                     onKeyDown={(event) => {
                                       if (event.key === "Enter" || event.key === "Escape") {
@@ -590,8 +663,8 @@ export default function TeacherAttendancePage() {
                                     placeholder="Remark"
                                   />
                                 ) : (
-                                  <span className="mt-1 block min-h-5 w-28 truncate px-1 text-[11px] text-[#888888]">
-                                    {remarksByCell[key] || "Double-click for remark"}
+                                  <span className="mt-1 block min-h-5 w-28 truncate px-1 text-xs theme-text-muted">
+                                    {remarksByCell[key] || (isActiveDate ? "Double-click for remark" : "")}
                                   </span>
                                 )}
                               </td>
@@ -605,19 +678,14 @@ export default function TeacherAttendancePage() {
               </div>
             )}
 
-            <div className="flex justify-end border-t border-white/10 pt-3">
-              <Button
-                type="submit"
-                loading={submitting || loadingAttendance}
-                disabled={loadingAttendance}
-                className="rounded-lg px-4 py-2 text-sm"
-              >
-                {submitting ? "Saving..." : "Save changes"}
-              </Button>
-            </div>
           </form>
         </Card>
       </AppShell>
     </ProtectedRoute>
   );
 }
+
+
+
+
+

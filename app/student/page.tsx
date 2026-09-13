@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { ProtectedRoute } from "@/src/components/auth/ProtectedRoute";
@@ -153,19 +153,19 @@ export default function StudentPage() {
               ["Absent / Leave", summary.absent + summary.leave],
             ].map(([label, value]) => (
               <Card key={label as string} className="p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-[#888888]">{label}</p>
-                <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
-                {label === "Attendance" ? <p className="mt-1 text-xs text-[#888888]">Present and late count</p> : null}
+                <p className="text-xs uppercase tracking-widest theme-text-muted">{label}</p>
+                <p className="mt-2 text-2xl font-semibold theme-text">{value}</p>
+                {label === "Attendance" ? <p className="mt-1 text-xs theme-text-muted">Present and late count</p> : null}
               </Card>
             ))}
           </div>
 
           <Card className="overflow-hidden p-0">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/10 p-5">
               <div>
-                <h2 className="text-lg font-semibold text-white">Daily record</h2>
-                <p className="mt-1 text-sm text-[#888888]">
-                  {selectedCourse?.CourseName ?? "All enrolled courses"} · {from} to {to}
+                <h2 className="text-lg font-semibold theme-text">Daily record</h2>
+                <p className="mt-1 text-sm theme-text-muted">
+                  {selectedCourse?.CourseName ?? "All enrolled courses"} Â· {from} to {to}
                 </p>
               </div>
               <Badge tone={loadingHistory ? "default" : summary.percentage >= 75 ? "success" : "danger"}>
@@ -174,13 +174,13 @@ export default function StudentPage() {
             </div>
 
             {loadingHistory ? (
-              <p className="p-8 text-sm text-[#888888]">Loading attendance history...</p>
+              <p className="p-8 text-sm theme-text-muted">Loading attendance history...</p>
             ) : records.length === 0 ? (
-              <p className="p-8 text-sm text-[#888888]">No attendance records were found for this period.</p>
+              <p className="p-8 text-sm theme-text-muted">No attendance records were found for this period.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
-                  <thead className="border-b border-white/10 text-[#888888]">
+                  <thead className="border-b border-black/10 theme-text-muted">
                     <tr>
                       <th className="px-5 py-3 font-medium">Date</th>
                       <th className="px-5 py-3 font-medium">Course</th>
@@ -190,11 +190,11 @@ export default function StudentPage() {
                   </thead>
                   <tbody>
                     {records.map((record) => (
-                      <tr key={record.AttendanceId || `${record.AttendanceDate}-${record.TeacherSectionCourseId}`} className="border-b border-white/5 last:border-0">
-                        <td className="px-5 py-4 text-white">{formatDate(record.AttendanceDate)}</td>
-                        <td className="px-5 py-4 text-[#d4d4d4]">{record.CourseName ?? "Course"}</td>
+                      <tr key={record.AttendanceId || `${record.AttendanceDate}-${record.TeacherSectionCourseId}`} className="border-b border-black/5 last:border-0">
+                        <td className="px-5 py-4 theme-text">{formatDate(record.AttendanceDate)}</td>
+                        <td className="px-5 py-4 theme-text-soft">{record.CourseName ?? "Course"}</td>
                         <td className="px-5 py-4"><Badge tone={statusTone[record.Status]}>{record.Status}</Badge></td>
-                        <td className="px-5 py-4 text-[#888888]">{record.Remarks || "-"}</td>
+                        <td className="px-5 py-4 theme-text-muted">{record.Remarks || "-"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -207,3 +207,9 @@ export default function StudentPage() {
     </ProtectedRoute>
   );
 }
+
+
+
+
+
+

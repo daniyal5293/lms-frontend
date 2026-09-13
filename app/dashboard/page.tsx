@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/src/components/providers/AuthProvider";
@@ -71,11 +71,11 @@ export default function DashboardPage() {
 
       <div className="mb-6 grid gap-4 md:grid-cols-3">
         {stats.map((stat) => (
-          <Card key={stat.label} className="bg-[#171717]">
+          <Card key={stat.label} className="theme-bg-surface">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[#888888]">{stat.label}</p>
-                <h2 className="mt-2 text-3xl font-semibold text-white">{loading ? "--" : stat.value}</h2>
+                <p className="text-sm theme-text-muted">{stat.label}</p>
+                <h2 className="mt-2 text-3xl font-semibold theme-text">{loading ? "--" : stat.value}</h2>
               </div>
               <Badge tone={stat.tone as "default" | "info" | "success"}>{stat.label}</Badge>
             </div>
@@ -83,30 +83,30 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+      <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-white">College overview</h3>
+            <h3 className="text-lg font-semibold theme-text">College overview</h3>
             <Badge tone="info">Live</Badge>
           </div>
-          <div className="space-y-4 text-sm text-[#d4d4d4]">
-            <div className="flex items-center justify-between rounded-xl border border-white/10 bg-[#111111] p-3">
+          <div className="space-y-4 text-sm theme-text-soft">
+            <div className="flex items-center justify-between rounded-xl border border-black/10 theme-bg-page p-3">
               <span>Active user role</span>
-              <span className="font-medium text-white">{currentUser?.Roles?.[0] ?? "Student"}</span>
+              <span className="font-medium theme-text">{currentUser?.Roles?.[0] ?? "Student"}</span>
             </div>
-            <div className="flex items-center justify-between rounded-xl border border-white/10 bg-[#111111] p-3">
+            <div className="flex items-center justify-between rounded-xl border border-black/10 theme-bg-page p-3">
               <span>Course count</span>
-              <span className="font-medium text-white">{courses.length}</span>
+              <span className="font-medium theme-text">{courses.length}</span>
             </div>
-            <div className="flex items-center justify-between rounded-xl border border-white/10 bg-[#111111] p-3">
+            <div className="flex items-center justify-between rounded-xl border border-black/10 theme-bg-page p-3">
               <span>Section count</span>
-              <span className="font-medium text-white">{sections.length}</span>
+              <span className="font-medium theme-text">{sections.length}</span>
             </div>
           </div>
         </Card>
 
         <Card>
-          <h3 className="mb-4 text-lg font-semibold text-white">Permissions</h3>
+          <h3 className="mb-4 text-lg font-semibold theme-text">Permissions</h3>
           <div className="space-y-3">
             {(currentUser?.Roles ?? ["Student"]).map((role) => (
               <Badge key={role} tone={role === "Admin" ? "warning" : role === "Teacher" ? "info" : "success"}>
@@ -120,3 +120,9 @@ export default function DashboardPage() {
     </ProtectedRoute>
   );
 }
+
+
+
+
+
+

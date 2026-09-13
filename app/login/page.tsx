@@ -1,5 +1,6 @@
-"use client";
+﻿"use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "@/src/components/providers/AuthProvider";
@@ -60,12 +61,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#111111] p-6">
-      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#171717] p-6 shadow-xl shadow-black/20">
+    <div className="flex min-h-screen items-center justify-center theme-bg-page p-6">
+      <div className="w-full max-w-md rounded-3xl border border-black/10 theme-bg-surface p-6 shadow-xl shadow-black/20">
         <div className="mb-6">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FF6B35] text-xl font-bold text-white">L</div>
-          <h1 className="text-3xl font-semibold text-white">Welcome back</h1>
-          <p className="mt-2 text-sm text-[#888888]">Sign in to continue to your college LMS dashboard.</p>
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl theme-bg-primary text-xl font-bold theme-text">L</div>
+          <h1 className="text-3xl font-semibold theme-text">Welcome back</h1>
+          <p className="mt-2 text-sm theme-text-muted">Sign in to continue to your college LMS dashboard.</p>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-5" noValidate>
@@ -96,7 +97,20 @@ export default function LoginPage() {
           </Button>
         </form>
 
+        <Link
+          href="/forgot-password"
+          className="mt-5 w-full text-center text-sm theme-text-primary transition hover:theme-text"
+        >
+          Forgot your password?
+        </Link>
+
       </div>
     </div>
   );
 }
+
+
+
+
+
+

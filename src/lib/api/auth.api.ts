@@ -1,5 +1,5 @@
 import { ApiError, apiFetch, clearAuthSession, storeAuthSession } from "@/src/lib/api/client";
-import type { AuthResponse, User } from "@/src/lib/types";
+import { normalizeRole, normalizeUser, type AuthResponse, type User } from "@/src/lib/types";
 
 type RawAuthResponse = {
   AccessToken?: string;
@@ -21,6 +21,22 @@ type RawUser = {
   roles?: User["Roles"];
 };
 
+const ROLE_CLAIM = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
+
+function getRolesFromAccessToken(accessToken: string) {
+  try {
+    const encodedPayload = accessToken.split(".")[1];
+    if (!encodedPayload) return [];
+
+    const base64 = encodedPayload.replace(/-/g, "+").replace(/_/g, "/");
+    const payload = JSON.parse(atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, "="))) as Record<string, unknown>;
+    const rawRoles = payload.role ?? payload.roles ?? payload.Role ?? payload.Roles ?? payload[ROLE_CLAIM];
+    return (Array.isArray(rawRoles) ? rawRoles : [rawRoles]).map(normalizeRole).filter((role): role is NonNullable<ReturnType<typeof normalizeRole>> => role !== null);
+  } catch {
+    return [];
+  }
+}
+
 function normalizeAuthResponse(payload: RawAuthResponse): AuthResponse {
   const rawUser = payload.User ?? payload.user;
   const accessToken = payload.AccessToken ?? payload.accessToken;
@@ -29,12 +45,15 @@ function normalizeAuthResponse(payload: RawAuthResponse): AuthResponse {
     throw new ApiError("The server returned an incomplete login response.", 502);
   }
 
-  const user: User = {
-    Id: rawUser.Id ?? rawUser.id ?? "",
-    FullName: rawUser.FullName ?? rawUser.fullName ?? "",
-    Email: rawUser.Email ?? rawUser.email ?? "",
-    Roles: rawUser.Roles ?? rawUser.roles ?? [],
-  };
+  const user = normalizeUser(rawUser);
+  if (!user) {
+    throw new ApiError("The server returned an invalid user record.", 502);
+  }
+
+  const tokenRoles = getRolesFromAccessToken(accessToken);
+  if (user.Roles.length === 0 && tokenRoles.length > 0) {
+    user.Roles = [...new Set(tokenRoles)];
+  }
 
   return {
     AccessToken: accessToken,
@@ -59,6 +78,24 @@ export async function registerUser(email: string, password: string, fullName: st
   return apiFetch<{ message: string }>("/api/auth/register", {
     method: "POST",
     body: JSON.stringify({ Email: email, Password: password, FullName: fullName }),
+  });
+}
+
+export async function sendPasswordResetCode(email: string) {
+  return apiFetch<{ message?: string }>("/api/auth/send-reset-code", {
+    method: "POST",
+    body: JSON.stringify({ email: email.trim() }),
+  });
+}
+
+export async function verifyAndResetPassword(email: string, verificationCode: string, newPassword: string) {
+  return apiFetch<{ message?: string }>("/api/auth/verify-and-reset", {
+    method: "POST",
+    body: JSON.stringify({
+      email: email.trim(),
+      VerificationCode: verificationCode.trim(),
+      NewPassword: newPassword,
+    }),
   });
 }
 

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -30,7 +30,7 @@ export function ProtectedRoute({
 
   if (!isReady || !accessToken || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#111111] text-[#888888]">
+      <div className="flex min-h-screen items-center justify-center theme-bg-page theme-text-muted">
         Checking access...
       </div>
     );
@@ -38,7 +38,7 @@ export function ProtectedRoute({
 
   if (allowedRoles && !user.Roles.some((role) => allowedRoles.includes(role))) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#111111] text-[#888888]">
+      <div className="flex min-h-screen items-center justify-center theme-bg-page theme-text-muted">
         Redirecting...
       </div>
     );
@@ -46,3 +46,9 @@ export function ProtectedRoute({
 
   return <>{children}</>;
 }
+
+
+
+
+
+

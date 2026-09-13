@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -71,5 +71,11 @@ export default function HodPage() {
     }
   };
 
-  return <ProtectedRoute allowedRoles={["HOD"]}><AppShell><PageHeader title="HOD Dashboard" description="Assign teachers to courses and sections." actions={<Button onClick={() => router.push("/hod/assignments/new")}>Create assignment</Button>} /><Card>{loading ? <div className="text-sm text-[#888888]">Loading assignments...</div> : assignments.length === 0 ? <p className="py-8 text-sm text-[#888888]">No teacher assignments found.</p> : <div className="overflow-x-auto"><table className="min-w-full text-left text-sm"><thead className="border-b border-white/10"><tr><th className="px-3 py-3 text-[#888888]">Teacher</th><th className="px-3 py-3 text-[#888888]">Course</th><th className="px-3 py-3 text-[#888888]">Section</th><th className="px-3 py-3 text-[#888888]">Status</th><th className="px-3 py-3 text-[#888888]">Actions</th></tr></thead><tbody>{assignments.map((assignment) => { const id = idOf(assignment); return <tr key={id} className="border-b border-white/5"><td className="px-3 py-3">{teacherName(assignment)}</td><td className="px-3 py-3">{courseName(assignment)}</td><td className="px-3 py-3">{sectionName(assignment)}</td><td className="px-3 py-3"><Badge tone={assignment.IsActive ?? assignment.isActive ? "success" : "warning"}>{assignment.IsActive ?? assignment.isActive ? "Active" : "Inactive"}</Badge></td><td className="px-3 py-3"><div className="flex gap-3"><button type="button" className="text-[#FF6B35] underline" onClick={() => router.push(`/hod/assignments/${id}/edit`)}>Edit</button><button type="button" className="text-red-300 underline" onClick={() => handleDelete(assignment)}>Delete</button></div></td></tr>; })}</tbody></table></div>}</Card></AppShell></ProtectedRoute>;
+  return <ProtectedRoute allowedRoles={["HOD"]}><AppShell><PageHeader title="HOD Dashboard" description="Assign teachers to courses and sections." actions={<Button onClick={() => router.push("/hod/assignments/new")}>Create assignment</Button>} /><Card>{loading ? <div className="text-sm theme-text-muted">Loading assignments...</div> : assignments.length === 0 ? <p className="py-8 text-sm theme-text-muted">No teacher assignments found.</p> : <div className="overflow-x-auto"><table className="min-w-full text-left text-sm"><thead className="border-b border-black/10"><tr><th className="px-3 py-3 theme-text-muted">Teacher</th><th className="px-3 py-3 theme-text-muted">Course</th><th className="px-3 py-3 theme-text-muted">Section</th><th className="px-3 py-3 theme-text-muted">Status</th><th className="px-3 py-3 theme-text-muted">Actions</th></tr></thead><tbody>{assignments.map((assignment) => { const id = idOf(assignment); return <tr key={id} className="border-b border-black/5"><td className="px-3 py-3">{teacherName(assignment)}</td><td className="px-3 py-3">{courseName(assignment)}</td><td className="px-3 py-3">{sectionName(assignment)}</td><td className="px-3 py-3"><Badge tone={assignment.IsActive ?? assignment.isActive ? "success" : "warning"}>{assignment.IsActive ?? assignment.isActive ? "Active" : "Inactive"}</Badge></td><td className="px-3 py-3"><div className="flex gap-3"><button type="button" className="theme-text-primary underline" onClick={() => router.push(`/hod/assignments/${id}/edit`)}>Edit</button><button type="button" className="text-red-300 underline" onClick={() => handleDelete(assignment)}>Delete</button></div></td></tr>; })}</tbody></table></div>}</Card></AppShell></ProtectedRoute>;
 }
+
+
+
+
+
+

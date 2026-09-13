@@ -34,6 +34,9 @@ function normalizeTeacherSectionCourse(
       assignment.SectionId ??
       assignment.sectionId ??
       assignment.section?.SectionId ??
+      assignment.section?.SectionID ??
+      assignment.Section?.SectionID ??
+      assignment.Section?.Id ??
       assignment.section?.sectionId,
 
     CourseId:

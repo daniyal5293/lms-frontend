@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -77,11 +77,16 @@ export default function StudentsPage() {
         <PageHeader title="Students" description="Manage student accounts, section assignments, and enrollment records." actions={<div className="flex gap-2"><Button variant="secondary" onClick={handleExport}>Export Excel</Button><Button onClick={() => router.push("/admin/students/new")}>Add Student</Button></div>} />
         <Card className="mb-6"><div className="max-w-md"><Input label="Search" placeholder="Search by name, email, or CNIC" value={query} onChange={(event) => setQuery(event.target.value)} /></div></Card>
         <Card>
-          {loading ? <div className="text-sm text-[#888888]">Loading students...</div> : filteredStudents.length === 0 ? <div className="py-8 text-center"><h3 className="text-lg font-semibold text-white">No students found</h3><p className="mt-2 text-sm text-[#888888]">No student records match your search.</p></div> : (
-            <div className="overflow-x-auto"><table className="min-w-full text-left text-sm text-white"><thead className="border-b border-white/10"><tr><th className="px-3 py-3 text-[#888888]">Name</th><th className="px-3 py-3 text-[#888888]">Email</th><th className="px-3 py-3 text-[#888888]">Phone</th><th className="px-3 py-3 text-[#888888]">Section</th><th className="px-3 py-3 text-[#888888]">Enrollment</th><th className="px-3 py-3 text-[#888888]">Actions</th></tr></thead><tbody>{filteredStudents.map((student) => { const id = studentId(student); return <tr key={id || `${student.Email ?? student.email}-${studentName(student)}`} className="border-b border-white/5"><td className="px-3 py-3 font-medium">{studentName(student)}</td><td className="px-3 py-3 text-[#d4d4d4]">{student.Email ?? student.email ?? "Not provided"}</td><td className="px-3 py-3 text-[#d4d4d4]">{student.PhoneNumber ?? student.phoneNumber ?? "Not provided"}</td><td className="px-3 py-3"><Badge tone="info">{student.Section?.Name ?? student.Section?.sectionName ?? student.SectionId ?? student.sectionId ?? "Unassigned"}</Badge></td><td className="px-3 py-3 text-[#d4d4d4]">{student.EnrollmentDate ?? student.enrollmentDate ?? "Not provided"}</td><td className="px-3 py-3"><div className="flex gap-2"><button type="button" className="text-[#FF6B35] underline" onClick={() => router.push(`/admin/students/${id}`)}>View</button><button type="button" className="text-[#d4d4d4] underline" onClick={() => router.push(`/admin/students/${id}/edit`)}>Edit</button><button type="button" className="text-red-300 underline" onClick={() => handleDelete(student)}>Delete</button></div></td></tr>; })}</tbody></table></div>
+          {loading ? <div className="text-sm theme-text-muted">Loading students...</div> : filteredStudents.length === 0 ? <div className="py-8 text-center"><h3 className="text-lg font-semibold theme-text">No students found</h3><p className="mt-2 text-sm theme-text-muted">No student records match your search.</p></div> : (
+            <div className="overflow-x-auto"><table className="min-w-full text-left text-sm theme-text"><thead className="border-b border-black/10"><tr><th className="px-3 py-3 theme-text-muted">Name</th><th className="px-3 py-3 theme-text-muted">Email</th><th className="px-3 py-3 theme-text-muted">Phone</th><th className="px-3 py-3 theme-text-muted">Section</th><th className="px-3 py-3 theme-text-muted">Enrollment</th><th className="px-3 py-3 theme-text-muted">Actions</th></tr></thead><tbody>{filteredStudents.map((student) => { const id = studentId(student); return <tr key={id || `${student.Email ?? student.email}-${studentName(student)}`} className="border-b border-black/5"><td className="px-3 py-3 font-medium">{studentName(student)}</td><td className="px-3 py-3 theme-text-soft">{student.Email ?? student.email ?? "Not provided"}</td><td className="px-3 py-3 theme-text-soft">{student.PhoneNumber ?? student.phoneNumber ?? "Not provided"}</td><td className="px-3 py-3"><Badge tone="info">{student.Section?.Name ?? student.Section?.sectionName ?? student.SectionId ?? student.sectionId ?? "Unassigned"}</Badge></td><td className="px-3 py-3 theme-text-soft">{student.EnrollmentDate ?? student.enrollmentDate ?? "Not provided"}</td><td className="px-3 py-3"><div className="flex gap-2"><button type="button" className="theme-text-primary underline" onClick={() => router.push(`/admin/students/${id}`)}>View</button><button type="button" className="theme-text-soft underline" onClick={() => router.push(`/admin/students/${id}/edit`)}>Edit</button><button type="button" className="text-red-300 underline" onClick={() => handleDelete(student)}>Delete</button></div></td></tr>; })}</tbody></table></div>
           )}
         </Card>
       </AppShell>
     </ProtectedRoute>
   );
 }
+
+
+
+
+

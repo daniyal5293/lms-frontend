@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -32,9 +32,9 @@ export default function CourseDetailPage() {
     load();
   }, [courseId]);
 
-  if (loading) return <AppShell><div className="py-10 text-center text-[#888888]">Loading course details...</div></AppShell>;
+  if (loading) return <AppShell><div className="py-10 text-center theme-text-muted">Loading course details...</div></AppShell>;
   if (error) return <AppShell><div className="py-10 text-center text-red-300">{error}</div></AppShell>;
-  if (!course) return <AppShell><div className="py-10 text-center text-[#888888]">Course not found.</div></AppShell>;
+  if (!course) return <AppShell><div className="py-10 text-center theme-text-muted">Course not found.</div></AppShell>;
 
   return (
     <AppShell>
@@ -46,12 +46,13 @@ export default function CourseDetailPage() {
 
       <Card>
         <dl className="space-y-4 text-sm">
-          <div className="flex justify-between gap-4 border-b border-white/10 pb-3"><dt className="text-[#888888]">Course name</dt><dd className="text-white">{course.Name}</dd></div>
-          <div className="flex justify-between gap-4 border-b border-white/10 pb-3"><dt className="text-[#888888]">Course code</dt><dd className="text-white">{course.Code}</dd></div>
-          <div className="flex justify-between gap-4 border-b border-white/10 pb-3"><dt className="text-[#888888]">Credits</dt><dd className="text-white">{course.Credits}</dd></div>
-          <div className="flex justify-between gap-4 border-b border-white/10 pb-3"><dt className="text-[#888888]">Description</dt><dd className="text-white">{course.Description ?? "Not provided"}</dd></div>
+          <div className="flex justify-between gap-4 border-b border-white/10 pb-3"><dt className="theme-text-muted">Course name</dt><dd className="text-white">{course.Name}</dd></div>
+          <div className="flex justify-between gap-4 border-b border-white/10 pb-3"><dt className="theme-text-muted">Course code</dt><dd className="text-white">{course.Code}</dd></div>
+          <div className="flex justify-between gap-4 border-b border-white/10 pb-3"><dt className="theme-text-muted">Credits</dt><dd className="text-white">{course.Credits}</dd></div>
+          <div className="flex justify-between gap-4 border-b border-white/10 pb-3"><dt className="theme-text-muted">Description</dt><dd className="text-white">{course.Description ?? "Not provided"}</dd></div>
         </dl>
       </Card>
     </AppShell>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -86,34 +86,34 @@ export default function AdminCoursesPage() {
       </Card>
 
       <Card>
-        {loading ? <div className="text-sm text-[#888888]">Loading courses...</div> : filteredCourses.length === 0 ? (
+        {loading ? <div className="text-sm theme-text-muted">Loading courses...</div> : filteredCourses.length === 0 ? (
           <div className="py-8 text-center">
-            <h3 className="text-lg font-semibold text-white">No courses found</h3>
-            <p className="mt-2 text-sm text-[#888888]">There are currently no courses available.</p>
+            <h3 className="text-lg font-semibold theme-text">No courses found</h3>
+            <p className="mt-2 text-sm theme-text-muted">There are currently no courses available.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm text-white">
-              <thead className="border-b border-white/10">
+            <table className="min-w-full text-left text-sm theme-text">
+              <thead className="border-b border-black/10">
                 <tr>
-                  <th className="px-3 py-3 font-medium text-[#888888]">Code</th>
-                  <th className="px-3 py-3 font-medium text-[#888888]">Course</th>
-                  <th className="px-3 py-3 font-medium text-[#888888]">Credits</th>
-                  <th className="px-3 py-3 font-medium text-[#888888]">Description</th>
-                  <th className="px-3 py-3 font-medium text-[#888888]">Actions</th>
+                  <th className="px-3 py-3 font-medium theme-text-muted">Code</th>
+                  <th className="px-3 py-3 font-medium theme-text-muted">Course</th>
+                  <th className="px-3 py-3 font-medium theme-text-muted">Credits</th>
+                  <th className="px-3 py-3 font-medium theme-text-muted">Description</th>
+                  <th className="px-3 py-3 font-medium theme-text-muted">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredCourses.map((course) => (
-                  <tr key={getCourseId(course) || course.Code} className="border-b border-white/5 align-top">
-                    <td className="px-3 py-3 font-medium text-white">{course.Code}</td>
-                    <td className="px-3 py-3 text-[#d4d4d4]">{course.Name}</td>
-                    <td className="px-3 py-3 text-[#d4d4d4]">{course.Credits}</td>
-                    <td className="px-3 py-3 text-[#d4d4d4] max-w-md">{course.Description ?? "No description provided."}</td>
+                  <tr key={getCourseId(course) || course.Code} className="border-b border-black/5 align-top">
+                    <td className="px-3 py-3 font-medium theme-text">{course.Code}</td>
+                    <td className="px-3 py-3 theme-text-soft">{course.Name}</td>
+                    <td className="px-3 py-3 theme-text-soft">{course.Credits}</td>
+                    <td className="px-3 py-3 theme-text-soft max-w-md">{course.Description ?? "No description provided."}</td>
                     <td className="px-3 py-3">
                       <div className="flex flex-wrap gap-2">
-                        <button type="button" disabled={!getCourseId(course)} onClick={() => router.push(`/admin/courses/${getCourseId(course)}`)} className="text-[#FF6B35] underline underline-offset-4 disabled:cursor-not-allowed disabled:opacity-50">View</button>
-                        <button type="button" disabled={!getCourseId(course)} onClick={() => router.push(`/admin/courses/${getCourseId(course)}/edit`)} className="text-[#d4d4d4] underline underline-offset-4 disabled:cursor-not-allowed disabled:opacity-50">Edit</button>
+                        <button type="button" disabled={!getCourseId(course)} onClick={() => router.push(`/admin/courses/${getCourseId(course)}`)} className="theme-text-primary underline underline-offset-4 disabled:cursor-not-allowed disabled:opacity-50">View</button>
+                        <button type="button" disabled={!getCourseId(course)} onClick={() => router.push(`/admin/courses/${getCourseId(course)}/edit`)} className="theme-text-soft underline underline-offset-4 disabled:cursor-not-allowed disabled:opacity-50">Edit</button>
                         <button type="button" onClick={() => handleDelete(course)} className="text-red-300 underline underline-offset-4">Delete</button>
                       </div>
                     </td>
@@ -128,3 +128,9 @@ export default function AdminCoursesPage() {
     </ProtectedRoute>
   );
 }
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-import { cn } from "@/src/lib/utils";
+﻿import { cn } from "@/src/lib/utils";
 import type { InputHTMLAttributes } from "react";
 
 type InputProps = InputHTMLAttributes<HTMLInputElement> & {
@@ -10,13 +10,13 @@ export function Input({ label, error, className, ...props }: InputProps) {
   const id = props.id ?? props.name;
 
   return (
-    <label className="block w-full text-sm text-white" htmlFor={id}>
-      {label ? <span className="mb-2 block text-[#d4d4d4]">{label}</span> : null}
+    <label className="block w-full text-sm theme-text" htmlFor={id}>
+      {label ? <span className="mb-2 block theme-text-soft">{label}</span> : null}
       <input
         {...props}
         id={id}
         className={cn(
-          "w-full rounded-xl border border-white/10 bg-[#1a1a1a] px-3 py-2.5 text-white placeholder:text-[#888888] focus:border-[#FF6B35] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+          "w-full rounded-xl border border-black/10 theme-bg-input px-3 py-2.5 theme-text placeholder:theme-text-muted focus:theme-border-primary focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
           error ? "border-red-500" : "",
           className,
         )}
@@ -25,3 +25,9 @@ export function Input({ label, error, className, ...props }: InputProps) {
     </label>
   );
 }
+
+
+
+
+
+

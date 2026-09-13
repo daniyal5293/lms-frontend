@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -68,7 +68,7 @@ export default function EditSectionPage() {
     }
   };
 
-  if (loading) return <AppShell><div className="py-10 text-center text-[#888888]">Loading section...</div></AppShell>;
+  if (loading) return <AppShell><div className="py-10 text-center theme-text-muted">Loading section...</div></AppShell>;
 
   return (
     <AppShell>
@@ -80,7 +80,7 @@ export default function EditSectionPage() {
             <Input label="Section name" value={form.sectionName} onChange={(event) => setForm((current) => ({ ...current, sectionName: event.target.value }))} />
             <Input label="Intermediate class" value={form.IntermediateClass} onChange={(event) => setForm((current) => ({ ...current, IntermediateClass: event.target.value }))} />
             <Input label="Start date" type="datetime-local" value={form.StartDate} onChange={(event) => setForm((current) => ({ ...current, StartDate: event.target.value }))} />
-            <label className="flex items-center gap-3 text-sm text-[#d4d4d4]"><input type="checkbox" checked={form.IsActive} onChange={(event) => setForm((current) => ({ ...current, IsActive: event.target.checked }))} />Active section</label>
+            <label className="flex items-center gap-3 text-sm theme-text-soft"><input type="checkbox" checked={form.IsActive} onChange={(event) => setForm((current) => ({ ...current, IsActive: event.target.checked }))} />Active section</label>
           </div>
 
           <div className="flex justify-end gap-3">
@@ -92,3 +92,4 @@ export default function EditSectionPage() {
     </AppShell>
   );
 }
+
