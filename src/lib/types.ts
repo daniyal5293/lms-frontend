@@ -162,6 +162,10 @@ export type ApplicableFee = {
 export type Invoice = {
   id?: string;
   Id?: string;
+  invoiceId?: string;
+  invoiceID?: string;
+  InvoiceId?: string;
+  InvoiceID?: string;
   invoiceNum?: string;
   InvoiceNum?: string;
   studentId?: string;
@@ -190,6 +194,17 @@ export type Invoice = {
   DueDate?: string;
   createdAt?: string;
   CreatedAt?: string;
+};
+
+export type Transaction = {
+  transactionId?: string;
+  invoiceId?: string;
+  invoiceID?: string;
+  amount?: number;
+  mode?: number;
+  transactionReference?: string;
+  paidAt?: string;
+  invoice?: Invoice;
 };
 
 export type Student = {

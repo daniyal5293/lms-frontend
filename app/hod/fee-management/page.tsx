@@ -8,15 +8,14 @@ import { useNotifications } from "@/src/components/providers/NotificationProvide
 import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
 import { Input } from "@/src/components/ui/Input";
-import { PageHeader } from "@/src/components/ui/PageHeader";
 import { Select } from "@/src/components/ui/Select";
 import { ApiError } from "@/src/lib/api/client";
 import { createApplicableFee, getApplicableFee, listApplicableFees, updateApplicableFee, type ApplicableFeePayload } from "@/src/lib/api/applicable-fees.api";
 import { createFeeCategory, getFeeCategory, listFeeCategories, updateFeeCategory } from "@/src/lib/api/fee-categories.api";
 import { createFeeType, getFeeType, listFeeTypes, updateFeeType, type FeeTypePayload } from "@/src/lib/api/fee-types.api";
-import { generateInvoice, listInvoiceHistoryByStudent, listPendingFeesByStudent, type GenerateInvoicePayload } from "@/src/lib/api/invoices.api";
+import { generateInvoice, listInvoiceHistoryByStudent, listPendingFeesByStudent, listTransactions, markInvoiceUnpaid, payInvoice, type GenerateInvoicePayload, type PayInvoicePayload } from "@/src/lib/api/invoices.api";
 import { listStudents } from "@/src/lib/api/students.api";
-import type { ApplicableFee, FeeCategory, FeeType, Invoice, Student } from "@/src/lib/types";
+import type { ApplicableFee, FeeCategory, FeeType, Invoice, Student, Transaction } from "@/src/lib/types";
 
 const categoryId = (category: FeeCategory) => category.categoryId ?? category.CategoryId ?? "";
 const categoryName = (category: FeeCategory) => category.categoryName ?? category.CategoryName ?? "";
@@ -33,19 +32,21 @@ const newFeeTypeForm = () => ({ FeeCategoryId: "", Name: "", Amount: "", Per: "m
 const studentId = (student: Student) => student.StudentId ?? student.studentId ?? student.student_id ?? student.Id ?? student.id ?? "";
 const studentName = (student: Student) => student.FullName ?? student.fullName ?? student.Email ?? student.email ?? "Student";
 const invoiceNumber = (invoice: Invoice) => invoice.invoiceNum ?? invoice.InvoiceNum ?? "-";
+const invoiceLineId = (invoice: Invoice) => invoice.id ?? invoice.Id ?? "";
 const invoiceFeeName = (invoice: Invoice) => invoice.feeTypeName ?? invoice.FeeTypeName ?? "-";
 const invoiceAmount = (invoice: Invoice) => invoice.amount ?? invoice.Amount ?? 0;
-const invoiceAmountDue = (invoice: Invoice) => invoice.amountDue ?? invoice.AmountDue ?? invoiceAmount(invoice);
+const invoiceAmountDue = (invoice: Invoice) => Math.max(invoiceAmount(invoice) - (invoice.amountPaid ?? invoice.AmountPaid ?? 0), 0);
 const invoiceDate = (value?: string) => value ? new Date(value).toLocaleDateString() : "-";
 const applicableFeeId = (fee: ApplicableFee) => fee.AfId ?? fee.afId ?? "";
 const comparableId = (value: string) => value.trim().toLowerCase();
 const applicableFeeStudentId = (fee: ApplicableFee) => fee.StudentId ?? fee.studentId ?? "";
 const applicableFeeTypeId = (fee: ApplicableFee) => fee.FeeTypeId ?? fee.feeTypeId ?? "";
 const newApplicableFeeForm = () => ({ StudentId: "", FeeTypeId: "" });
-const newInvoiceForm = () => ({ StudentId: "", FeeTypeIds: [] as string[], Month: new Date().toLocaleString("en-US", { month: "long" }), Year: String(new Date().getFullYear()), DueDate: new Date().toISOString().slice(0, 16) });
+const newInvoiceForm = () => ({ StudentId: "", FeeTypeIds: [] as string[], Month: new Date().toLocaleString("en-US", { month: "long" }), Year: String(new Date().getFullYear()), DueDate: new Date().toISOString().slice(0, 10) });
 type ApplicableFeeForm = ReturnType<typeof newApplicableFeeForm>;
 type InvoiceForm = ReturnType<typeof newInvoiceForm>;
 type FeeTypeForm = ReturnType<typeof newFeeTypeForm>;
+type FeeManagementTab = "categories" | "types" | "charged" | "generate" | "invoices" | "transactions";
 
 const invoicePdfStyles = StyleSheet.create({
   page: { padding: 36, fontFamily: "Helvetica", color: "#1f2937", fontSize: 10 },
@@ -78,6 +79,7 @@ function InvoicePdfDocument({ invoices, student }: { invoices: Invoice[]; studen
 
 export default function FeeManagementPage() {
   const { notify } = useNotifications();
+  const [activeTab, setActiveTab] = useState<FeeManagementTab>("categories");
   const [categories, setCategories] = useState<FeeCategory[]>([]);
   const [feeTypes, setFeeTypes] = useState<FeeType[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
@@ -95,6 +97,14 @@ export default function FeeManagementPage() {
   const [invoiceHistory, setInvoiceHistory] = useState<Invoice[]>([]);
   const [invoiceHistoryStudentId, setInvoiceHistoryStudentId] = useState("");
   const [invoiceHistoryLoading, setInvoiceHistoryLoading] = useState(false);
+  const [paymentInvoiceId, setPaymentInvoiceId] = useState<string | null>(null);
+  const [transactionRef, setTransactionRef] = useState("");
+  const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
+  const [markingUnpaidId, setMarkingUnpaidId] = useState<string | null>(null);
+  const [editingPaymentInvoice, setEditingPaymentInvoice] = useState<Invoice | null>(null);
+  const [editedPaymentStatus, setEditedPaymentStatus] = useState<"Paid" | "Unpaid">("Paid");
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactionsLoading, setTransactionsLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -117,6 +127,20 @@ export default function FeeManagementPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    const loadTransactions = async () => {
+      try {
+        setTransactions(await listTransactions());
+      } catch (error) {
+        notify("error", "Transaction history unavailable", error instanceof ApiError ? error.message : "Unable to load transaction history.");
+      } finally {
+        setTransactionsLoading(false);
+      }
+    };
+
+    void loadTransactions();
+  }, [notify]);
 
   const resetForm = () => {
     setName("");
@@ -262,7 +286,7 @@ export default function FeeManagementPage() {
       fees: invoiceForm.FeeTypeIds.map((feeTypeId) => ({ studentId: invoiceForm.StudentId, feeTypeId })),
       month: invoiceForm.Month.trim(),
       year: invoiceForm.Year.trim(),
-      dueDate: new Date(invoiceForm.DueDate).toISOString(),
+      dueDate: `${invoiceForm.DueDate}T00:00:00`,
     };
     setGeneratingInvoice(true);
     try {
@@ -307,6 +331,69 @@ export default function FeeManagementPage() {
     }
   };
 
+  const handlePayInvoice = async (event: React.FormEvent<HTMLFormElement>, invoice: Invoice) => {
+    event.preventDefault();
+    const id = invoiceLineId(invoice);
+    const reference = transactionRef.trim();
+    const amount = invoiceAmountDue(invoice);
+    if (!id || !reference || !Number.isFinite(amount) || amount <= 0) {
+      notify("error", "Payment validation failed", "Enter a transaction reference for an invoice with an outstanding balance.");
+      return;
+    }
+
+    const payload: PayInvoicePayload = { invoiceID: id, amount, mode: 0, transactionRef: reference };
+    setPayingInvoiceId(id);
+    try {
+      await payInvoice(id, payload);
+      notify("success", "Payment recorded", `Payment for invoice ${invoiceNumber(invoice)} was recorded successfully.`);
+      setPaymentInvoiceId(null);
+      setTransactionRef("");
+      if (invoiceHistoryStudentId) setInvoiceHistory(await listInvoiceHistoryByStudent(invoiceHistoryStudentId));
+      setTransactions(await listTransactions());
+    } catch (error) {
+      notify("error", "Payment failed", error instanceof ApiError ? error.message : "Unable to record this payment.");
+    } finally {
+      setPayingInvoiceId(null);
+    }
+  };
+
+  const openPaymentStatusEditor = (invoice: Invoice) => {
+    setEditingPaymentInvoice(invoice);
+    setEditedPaymentStatus("Paid");
+  };
+
+  const handleMarkInvoiceUnpaid = (invoice: Invoice) => {
+    openPaymentStatusEditor(invoice);
+  };
+
+  const closePaymentStatusEditor = () => {
+    setEditingPaymentInvoice(null);
+    setEditedPaymentStatus("Paid");
+  };
+
+  const handleSavePaymentStatus = async () => {
+    if (!editingPaymentInvoice || editedPaymentStatus === "Paid") {
+      closePaymentStatusEditor();
+      return;
+    }
+
+    const id = invoiceLineId(editingPaymentInvoice);
+    if (!id) return;
+
+    setMarkingUnpaidId(id);
+    try {
+      await markInvoiceUnpaid(id);
+      notify("success", "Invoice marked unpaid", `Invoice ${invoiceNumber(editingPaymentInvoice)} can be paid again.`);
+      if (invoiceHistoryStudentId) setInvoiceHistory(await listInvoiceHistoryByStudent(invoiceHistoryStudentId));
+      setTransactions(await listTransactions());
+      closePaymentStatusEditor();
+    } catch (error) {
+      notify("error", "Unable to mark invoice unpaid", error instanceof ApiError ? error.message : "Unable to update this invoice.");
+    } finally {
+      setMarkingUnpaidId(null);
+    }
+  };
+
   const invoiceGroups = Array.from(
     invoiceHistory.reduce((groups, invoice) => {
       const key = invoiceNumber(invoice);
@@ -316,12 +403,13 @@ export default function FeeManagementPage() {
       return groups;
     }, new Map<string, Invoice[]>()),
   );
+  const sortedTransactions = [...transactions].sort((first, second) => new Date(second.paidAt ?? 0).getTime() - new Date(first.paidAt ?? 0).getTime());
 
   return (
     <ProtectedRoute allowedRoles={["HOD"]}>
       <AppShell>
-        <PageHeader title="Fee Management" description="Manage the fee categories used by the institution." />
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
+        <div className="mb-6 overflow-x-auto border-b border-black/10"><div className="flex min-w-max gap-1" role="tablist" aria-label="Fee management sections">{([ ["invoices", "Invoice history"], ["generate", "Generate invoice"], ["charged", "Apply fee"], ["types", "Fee types"], ["categories", "Fee categories"], ["transactions", "Transactions"] ] as const).map(([tab, label]) => <button key={tab} type="button" role="tab" aria-selected={activeTab === tab} className={`border-b-2 px-4 py-3 text-sm font-medium transition ${activeTab === tab ? "theme-border-primary theme-text-primary" : "border-transparent theme-text-muted hover:theme-text"}`} onClick={() => setActiveTab(tab)}>{label}</button>)}</div></div>
+        {activeTab === "categories" ? <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
           <Card>
             <h2 className="mb-4 text-lg font-semibold theme-text">Fee categories</h2>
             {loading ? <div className="text-sm theme-text-muted">Loading fee categories...</div> : categories.length === 0 ? <p className="py-8 text-sm theme-text-muted">No fee categories found.</p> : (
@@ -343,8 +431,8 @@ export default function FeeManagementPage() {
               </div>
             </form>
           </Card>
-        </div>
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
+        </div> : null}
+        {activeTab === "types" ? <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
           <Card>
             <h2 className="mb-4 text-lg font-semibold theme-text">Fee types</h2>
             {loading ? <div className="text-sm theme-text-muted">Loading fee types...</div> : feeTypes.length === 0 ? <p className="py-8 text-sm theme-text-muted">No fee types found.</p> : (
@@ -380,8 +468,8 @@ export default function FeeManagementPage() {
               </div>
             </form>
           </Card>
-        </div>
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
+        </div> : null}
+        {activeTab === "charged" ? <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
           <Card>
             <h2 className="mb-4 text-lg font-semibold theme-text">Charged fees</h2>
             {loading ? <div className="text-sm theme-text-muted">Loading charged fees...</div> : applicableFees.length === 0 ? <p className="py-8 text-sm theme-text-muted">No fees have been charged yet.</p> : (
@@ -417,8 +505,8 @@ export default function FeeManagementPage() {
               </div>
             </form>
           </Card>
-        </div>
-        <Card className="mt-6">
+        </div> : null}
+        {activeTab === "generate" ? <Card className="mt-6">
           <h2 className="mb-4 text-lg font-semibold theme-text">Generate invoice</h2>
           <form className="space-y-4" onSubmit={handleGenerateInvoice} noValidate>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -426,9 +514,11 @@ export default function FeeManagementPage() {
                 <option value="">Select student</option>
                 {students.map((student) => <option key={studentId(student)} value={studentId(student)}>{studentName(student)}</option>)}
               </Select>
-              <Input label="Month" placeholder="September" value={invoiceForm.Month} onChange={(event) => setInvoiceForm((current) => ({ ...current, Month: event.target.value }))} disabled={generatingInvoice} />
+              <Select label="Month" value={invoiceForm.Month} onChange={(event) => setInvoiceForm((current) => ({ ...current, Month: event.target.value }))} disabled={generatingInvoice}>
+                {(["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"] as const).map((month) => <option key={month} value={month}>{month}</option>)}
+              </Select>
               <Input label="Year" placeholder="2026" value={invoiceForm.Year} onChange={(event) => setInvoiceForm((current) => ({ ...current, Year: event.target.value }))} disabled={generatingInvoice} />
-              <Input label="Due date" type="datetime-local" value={invoiceForm.DueDate} onChange={(event) => setInvoiceForm((current) => ({ ...current, DueDate: event.target.value }))} disabled={generatingInvoice} />
+              <Input label="Due date" type="date" value={invoiceForm.DueDate} onChange={(event) => setInvoiceForm((current) => ({ ...current, DueDate: event.target.value }))} disabled={generatingInvoice} />
             </div>
             <fieldset disabled={!invoiceForm.StudentId || generatingInvoice}>
               <legend className="mb-2 block text-sm theme-text-soft">Charged fees to include</legend>
@@ -436,8 +526,8 @@ export default function FeeManagementPage() {
             </fieldset>
             <div className="flex justify-end"><Button type="submit" loading={generatingInvoice}>{generatingInvoice ? "Generating..." : "Generate invoice"}</Button></div>
           </form>
-        </Card>
-        <Card className="mt-6">
+        </Card> : null}
+        {activeTab === "invoices" ? <Card className="mt-6">
           <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="text-lg font-semibold theme-text">Invoice history</h2>
@@ -454,11 +544,21 @@ export default function FeeManagementPage() {
             <div className="overflow-x-auto">
               <table className="min-w-full text-left text-sm">
                 <thead className="border-b border-black/10"><tr><th className="px-3 py-3 theme-text-muted">Invoice</th><th className="px-3 py-3 theme-text-muted">Fee</th><th className="px-3 py-3 theme-text-muted">Amount</th><th className="px-3 py-3 theme-text-muted">Paid</th><th className="px-3 py-3 theme-text-muted">Due</th><th className="px-3 py-3 theme-text-muted">Period</th><th className="px-3 py-3 theme-text-muted">Due date</th><th className="px-3 py-3 theme-text-muted">Status</th></tr></thead>
-                <tbody>{invoiceGroups.flatMap(([invoiceNumberValue, invoices]) => invoices.map((invoice, index) => { const paid = invoice.ispaid ?? invoice.IsPaid ?? false; return <tr key={invoice.id ?? invoice.Id ?? `${invoiceNumberValue}-${invoice.feeTypeId ?? invoice.FeeTypeId}`} className="border-b border-black/5">{index === 0 ? <td rowSpan={invoices.length} className="px-3 py-3 align-top font-medium"><div className="space-y-2">{invoiceNumberValue}<PDFDownloadLink document={<InvoicePdfDocument invoices={invoices} student={students.find((student) => comparableId(studentId(student)) === comparableId(invoiceHistoryStudentId)) ?? {}} />} fileName={`${invoiceNumberValue}.pdf`} className="block w-fit rounded-lg theme-bg-primary px-2.5 py-1.5 text-xs theme-text-on-primary">{({ loading: pdfLoading }) => pdfLoading ? "Preparing..." : "Download PDF"}</PDFDownloadLink></div></td> : null}<td className="px-3 py-3">{invoiceFeeName(invoice)}</td><td className="px-3 py-3">{invoice.currency ?? invoice.Currency ?? "PKR"} {invoiceAmount(invoice).toFixed(2)}</td><td className="px-3 py-3">{invoice.currency ?? invoice.Currency ?? "PKR"} {(invoice.amountPaid ?? invoice.AmountPaid ?? 0).toFixed(2)}</td><td className="px-3 py-3">{invoice.currency ?? invoice.Currency ?? "PKR"} {invoiceAmountDue(invoice).toFixed(2)}</td><td className="px-3 py-3">{invoice.month ?? invoice.Month ?? "-"} {invoice.year ?? invoice.Year ?? ""}</td><td className="px-3 py-3">{invoiceDate(invoice.dueDate ?? invoice.DueDate)}</td><td className="px-3 py-3">{paid ? "Paid" : "Unpaid"}</td></tr>; }))}</tbody>
+                <tbody>{invoiceGroups.flatMap(([invoiceNumberValue, invoices]) => invoices.map((invoice, index) => { const paid = invoice.ispaid ?? invoice.IsPaid ?? false; const id = invoiceLineId(invoice); const paymentOpen = paymentInvoiceId === id; const amountDue = invoiceAmountDue(invoice); return <tr key={invoice.id ?? invoice.Id ?? `${invoiceNumberValue}-${invoice.feeTypeId ?? invoice.FeeTypeId}`} className={`border-b border-black/5 ${paid ? "bg-green-50" : ""}`}>{index === 0 ? <td rowSpan={invoices.length} className="px-3 py-3 align-top font-medium"><div className="space-y-2">{invoiceNumberValue}<PDFDownloadLink document={<InvoicePdfDocument invoices={invoices} student={students.find((student) => comparableId(studentId(student)) === comparableId(invoiceHistoryStudentId)) ?? {}} />} fileName={`${invoiceNumberValue}.pdf`} className="block w-fit rounded-lg theme-bg-primary px-2.5 py-1.5 text-xs theme-text-on-primary">{({ loading: pdfLoading }) => pdfLoading ? "Preparing..." : "Download PDF"}</PDFDownloadLink></div></td> : null}<td className="px-3 py-3">{invoiceFeeName(invoice)}</td><td className="px-3 py-3">{invoice.currency ?? invoice.Currency ?? "PKR"} {invoiceAmount(invoice).toFixed(2)}</td><td className="px-3 py-3">{invoice.currency ?? invoice.Currency ?? "PKR"} {(invoice.amountPaid ?? invoice.AmountPaid ?? 0).toFixed(2)}</td><td className="px-3 py-3">{invoice.currency ?? invoice.Currency ?? "PKR"} {amountDue.toFixed(2)}</td><td className="px-3 py-3">{invoice.month ?? invoice.Month ?? "-"} {invoice.year ?? invoice.Year ?? ""}</td><td className="px-3 py-3">{invoiceDate(invoice.dueDate ?? invoice.DueDate)}</td><td className="px-3 py-3">{paid ? "Paid" : "Unpaid"}<div className="mt-2 space-y-2">{paid ? <Button type="button" variant="ghost" className="rounded-lg px-2.5 py-1.5 text-xs" onClick={() => void handleMarkInvoiceUnpaid(invoice)} loading={markingUnpaidId === id}>{markingUnpaidId === id ? "Updating..." : "Edit"}</Button> : <><Button type="button" variant="secondary" className="rounded-lg px-2.5 py-1.5 text-xs" onClick={() => { setPaymentInvoiceId(paymentOpen ? null : id); setTransactionRef(""); }} disabled={!id || amountDue <= 0}>{paymentOpen ? "Cancel" : "Pay"}</Button>{paymentOpen ? <form className="space-y-2 font-normal" onSubmit={(event) => void handlePayInvoice(event, invoice)}><Input aria-label="Transaction reference" placeholder="Transaction reference" value={transactionRef} onChange={(event) => setTransactionRef(event.target.value)} disabled={payingInvoiceId === id} required /><Button type="submit" loading={payingInvoiceId === id} className="w-full rounded-lg px-2.5 py-1.5 text-xs">{payingInvoiceId === id ? "Paying..." : `Pay ${invoice.currency ?? invoice.Currency ?? "PKR"} ${amountDue.toFixed(2)}`}</Button></form> : null}</>}</div></td></tr>; }))}</tbody>
               </table>
             </div>
           )}
-        </Card>
+        </Card> : null}
+        {activeTab === "transactions" ? <Card className="mt-6">
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-semibold theme-text">Transaction history</h2>
+              <p className="mt-1 text-sm theme-text-muted">All recorded invoice payments.</p>
+            </div>
+          </div>
+          {transactionsLoading ? <p className="py-8 text-sm theme-text-muted">Loading transaction history...</p> : transactions.length === 0 ? <p className="py-8 text-sm theme-text-muted">No transactions found.</p> : <div className="overflow-x-auto"><table className="min-w-full text-left text-sm"><thead className="border-b border-black/10"><tr><th className="px-3 py-3 theme-text-muted">Invoice</th><th className="px-3 py-3 theme-text-muted">Fee</th><th className="px-3 py-3 theme-text-muted">Amount</th><th className="px-3 py-3 theme-text-muted">Reference</th><th className="px-3 py-3 theme-text-muted">Mode</th><th className="px-3 py-3 theme-text-muted">Paid at</th></tr></thead><tbody>{sortedTransactions.map((transaction) => { const invoice = transaction.invoice; const currency = invoice?.currency ?? invoice?.Currency ?? "PKR"; return <tr key={transaction.transactionId ?? `${transaction.invoiceId}-${transaction.paidAt}`} className="border-b border-black/5"><td className="px-3 py-3">{invoice ? invoiceNumber(invoice) : transaction.invoiceId ?? "-"}</td><td className="px-3 py-3">{invoice ? invoiceFeeName(invoice) : "-"}</td><td className="px-3 py-3">{currency} {(transaction.amount ?? 0).toFixed(2)}</td><td className="px-3 py-3">{transaction.transactionReference ?? "-"}</td><td className="px-3 py-3">{transaction.mode ?? "-"}</td><td className="px-3 py-3">{invoiceDate(transaction.paidAt)}</td></tr>; })}</tbody></table></div>}
+        </Card> : null}
+        {editingPaymentInvoice ? <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) closePaymentStatusEditor(); }}><div className="w-full max-w-md rounded-2xl theme-bg-surface p-6 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="payment-status-title"><h2 id="payment-status-title" className="text-lg font-semibold theme-text">Update payment status</h2><p className="mt-2 text-sm theme-text-muted">Change the status for invoice {invoiceNumber(editingPaymentInvoice)} and save your changes.</p><div className="mt-5"><Select label="Payment status" value={editedPaymentStatus} onChange={(event) => setEditedPaymentStatus(event.target.value as "Paid" | "Unpaid")} disabled={Boolean(markingUnpaidId)}><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option></Select></div><div className="mt-6 flex justify-end gap-3"><Button type="button" variant="ghost" onClick={closePaymentStatusEditor} disabled={Boolean(markingUnpaidId)}>Cancel</Button><Button type="button" onClick={() => void handleSavePaymentStatus()} loading={Boolean(markingUnpaidId)}>{markingUnpaidId ? "Saving..." : "Save changes"}</Button></div></div></div> : null}
       </AppShell>
     </ProtectedRoute>
   );
