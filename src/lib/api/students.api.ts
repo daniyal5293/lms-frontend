@@ -20,6 +20,19 @@ function normalizeStudent(student: Student): Student {
   };
 }
 
+function getStudentArray(response: unknown): Student[] {
+  if (Array.isArray(response)) return response.map(normalizeStudent);
+
+  if (response && typeof response === "object") {
+    const result = response as Record<string, unknown>;
+    for (const key of ["students", "Students", "data", "Data", "items", "Items", "results", "Results", "$values"]) {
+      if (key in result) return getStudentArray(result[key]);
+    }
+  }
+
+  throw new Error("The server returned an invalid student list.");
+}
+
 export type CreateStudentPayload = {
   fullName: string;
   email: string;
@@ -38,13 +51,18 @@ export async function createStudent(payload: CreateStudentPayload) {
 }
 
 export async function listStudents() {
-  const students = await apiFetch<Student[]>("/api/student");
-  return students.map(normalizeStudent);
+  const response = await apiFetch<unknown>("/api/student");
+  return getStudentArray(response);
 }
 
 export async function getStudentById(id: string) {
   const student = await apiFetch<Student>(`/api/student/${id}`);
   return normalizeStudent(student);
+}
+
+export async function listStudentsBySectionId(sectionId: string) {
+  const response = await apiFetch<unknown>(`/api/student/section/${encodeURIComponent(sectionId)}`);
+  return getStudentArray(response);
 }
 
 export async function updateStudent(id: string, payload: CreateStudentPayload) {

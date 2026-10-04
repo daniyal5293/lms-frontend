@@ -1,11 +1,20 @@
 import { apiFetch } from "@/src/lib/api/client";
 import type { ApplicableFee, Invoice, Transaction } from "@/src/lib/types";
 
+export type GenerateInvoiceItem = {
+  StudentId: string;
+  FeeTypeId: string;
+};
+
 export type GenerateInvoicePayload = {
-  fees: Array<{
-    studentId: string;
-    feeTypeId: string;
-  }>;
+  fees: GenerateInvoiceItem[];
+  month: string;
+  year: string;
+  dueDate: string;
+};
+
+export type BulkGenerateInvoicePayload = {
+  fees: GenerateInvoiceItem[];
   month: string;
   year: string;
   dueDate: string;
@@ -20,6 +29,13 @@ export type PayInvoicePayload = {
 
 export async function generateInvoice(payload: GenerateInvoicePayload) {
   return apiFetch<Invoice[]>("/api/invoice/generate", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function generateInvoicesBulk(payload: BulkGenerateInvoicePayload) {
+  return apiFetch<Invoice[]>("/api/invoice/generate/bulk", {
     method: "POST",
     body: JSON.stringify(payload),
   });

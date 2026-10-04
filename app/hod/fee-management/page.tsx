@@ -8,14 +8,16 @@ import { useNotifications } from "@/src/components/providers/NotificationProvide
 import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
 import { Input } from "@/src/components/ui/Input";
+import { SearchableMultiSelect } from "@/src/components/ui/SearchableMultiSelect";
 import { Select } from "@/src/components/ui/Select";
 import { ApiError } from "@/src/lib/api/client";
-import { createApplicableFee, getApplicableFee, listApplicableFees, updateApplicableFee, type ApplicableFeePayload } from "@/src/lib/api/applicable-fees.api";
+import { createApplicableFeesBulk, getApplicableFee, listApplicableFees, listApplicableFeesBySection, listApplicableFeesByStudent, updateApplicableFee, type ApplicableFeePayload, type BulkApplicableFeePayload } from "@/src/lib/api/applicable-fees.api";
 import { createFeeCategory, getFeeCategory, listFeeCategories, updateFeeCategory } from "@/src/lib/api/fee-categories.api";
 import { createFeeType, getFeeType, listFeeTypes, updateFeeType, type FeeTypePayload } from "@/src/lib/api/fee-types.api";
-import { generateInvoice, listInvoiceHistoryByStudent, listPendingFeesByStudent, listTransactions, markInvoiceUnpaid, payInvoice, type GenerateInvoicePayload, type PayInvoicePayload } from "@/src/lib/api/invoices.api";
-import { listStudents } from "@/src/lib/api/students.api";
-import type { ApplicableFee, FeeCategory, FeeType, Invoice, Student, Transaction } from "@/src/lib/types";
+import { generateInvoicesBulk, listInvoiceHistoryByStudent, listPendingFeesByStudent, listTransactions, markInvoiceUnpaid, payInvoice, type BulkGenerateInvoicePayload, type PayInvoicePayload } from "@/src/lib/api/invoices.api";
+import { listSections } from "@/src/lib/api/sections.api";
+import { listStudents, listStudentsBySectionId } from "@/src/lib/api/students.api";
+import type { ApplicableFee, FeeCategory, FeeType, Invoice, Section, Student, Transaction } from "@/src/lib/types";
 
 const categoryId = (category: FeeCategory) => category.categoryId ?? category.CategoryId ?? "";
 const categoryName = (category: FeeCategory) => category.categoryName ?? category.CategoryName ?? "";
@@ -39,10 +41,25 @@ const invoiceAmountDue = (invoice: Invoice) => Math.max(invoiceAmount(invoice) -
 const invoiceDate = (value?: string) => value ? new Date(value).toLocaleDateString() : "-";
 const applicableFeeId = (fee: ApplicableFee) => fee.AfId ?? fee.afId ?? "";
 const comparableId = (value: string) => value.trim().toLowerCase();
+const applicableFeePairKey = (studentIdValue: string, feeTypeIdValue: string) => JSON.stringify([comparableId(studentIdValue), comparableId(feeTypeIdValue)]);
+const applicableFeeTypeIdFor = (fee: ApplicableFee, feeTypes: FeeType[]) => {
+  const directId = fee.FeeTypeId ?? fee.feeTypeId;
+  if (directId) return directId;
+  const name = fee.FeeTypeName ?? fee.feeTypeName ?? "";
+  return feeTypeId(feeTypes.find((feeType) => comparableId(feeTypeName(feeType)) === comparableId(name)) ?? {});
+};
+const applicableFeeStudentIdFor = (fee: ApplicableFee, students: Student[]) => {
+  const directId = fee.StudentId ?? fee.studentId;
+  if (directId) return directId;
+  const name = fee.StudentName ?? fee.studentName ?? "";
+  return studentId(students.find((student) => comparableId(studentName(student)) === comparableId(name)) ?? {});
+};
+const sectionId = (section: Section) => section.SectionId ?? section.sectionId ?? section.Id ?? section.id ?? "";
+const sectionName = (section: Section) => section.Name ?? section.sectionName ?? "Unnamed section";
 const applicableFeeStudentId = (fee: ApplicableFee) => fee.StudentId ?? fee.studentId ?? "";
 const applicableFeeTypeId = (fee: ApplicableFee) => fee.FeeTypeId ?? fee.feeTypeId ?? "";
-const newApplicableFeeForm = () => ({ StudentId: "", FeeTypeId: "" });
-const newInvoiceForm = () => ({ StudentId: "", FeeTypeIds: [] as string[], Month: new Date().toLocaleString("en-US", { month: "long" }), Year: String(new Date().getFullYear()), DueDate: new Date().toISOString().slice(0, 10) });
+const newApplicableFeeForm = () => ({ StudentId: "", SectionId: "", FeeTypeIds: [] as string[] });
+const newInvoiceForm = () => ({ StudentId: "", SectionId: "", FeeTypeIds: [] as string[], Month: new Date().toLocaleString("en-US", { month: "long" }), Year: String(new Date().getFullYear()), DueDate: new Date().toISOString().slice(0, 10) });
 type ApplicableFeeForm = ReturnType<typeof newApplicableFeeForm>;
 type InvoiceForm = ReturnType<typeof newInvoiceForm>;
 type FeeTypeForm = ReturnType<typeof newFeeTypeForm>;
@@ -82,10 +99,11 @@ export default function FeeManagementPage() {
   const [activeTab, setActiveTab] = useState<FeeManagementTab>("categories");
   const [categories, setCategories] = useState<FeeCategory[]>([]);
   const [feeTypes, setFeeTypes] = useState<FeeType[]>([]);
+  const [sections, setSections] = useState<Section[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [applicableFees, setApplicableFees] = useState<ApplicableFee[]>([]);
-  const [pendingFees, setPendingFees] = useState<ApplicableFee[]>([]);
-  const [pendingFeesLoading, setPendingFeesLoading] = useState(false);
+  const [applicableFeeTargetMode, setApplicableFeeTargetMode] = useState<"student" | "section">("student");
+  const [invoiceTargetMode, setInvoiceTargetMode] = useState<"student" | "section">("student");
   const [name, setName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [feeTypeForm, setFeeTypeForm] = useState<FeeTypeForm>(newFeeTypeForm);
@@ -93,6 +111,11 @@ export default function FeeManagementPage() {
   const [applicableFeeForm, setApplicableFeeForm] = useState<ApplicableFeeForm>(newApplicableFeeForm);
   const [editingApplicableFeeId, setEditingApplicableFeeId] = useState<string | null>(null);
   const [invoiceForm, setInvoiceForm] = useState<InvoiceForm>(newInvoiceForm);
+  const [sectionApplicableFees, setSectionApplicableFees] = useState<ApplicableFee[]>([]);
+  const [sectionStudents, setSectionStudents] = useState<Student[]>([]);
+  const [sectionFeesLoading, setSectionFeesLoading] = useState(false);
+  const [pendingFees, setPendingFees] = useState<ApplicableFee[]>([]);
+  const [pendingFeesLoading, setPendingFeesLoading] = useState(false);
   const [generatingInvoice, setGeneratingInvoice] = useState(false);
   const [invoiceHistory, setInvoiceHistory] = useState<Invoice[]>([]);
   const [invoiceHistoryStudentId, setInvoiceHistoryStudentId] = useState("");
@@ -111,9 +134,10 @@ export default function FeeManagementPage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [categoryData, feeTypeData, studentData, applicableFeeData] = await Promise.all([listFeeCategories(), listFeeTypes(), listStudents(), listApplicableFees()]);
+      const [categoryData, feeTypeData, sectionData, studentData, applicableFeeData] = await Promise.all([listFeeCategories(), listFeeTypes(), listSections(), listStudents(), listApplicableFees()]);
       setCategories(categoryData);
       setFeeTypes(feeTypeData);
+      setSections(sectionData);
       setStudents(studentData);
       setApplicableFees(applicableFeeData);
     } catch (error) {
@@ -154,6 +178,7 @@ export default function FeeManagementPage() {
 
   const resetApplicableFeeForm = () => {
     setApplicableFeeForm(newApplicableFeeForm());
+    setApplicableFeeTargetMode("student");
     setEditingApplicableFeeId(null);
   };
 
@@ -190,7 +215,7 @@ export default function FeeManagementPage() {
     try {
       const applicableFee = await getApplicableFee(id);
       setEditingApplicableFeeId(id);
-      setApplicableFeeForm({ StudentId: applicableFeeStudentId(applicableFee), FeeTypeId: applicableFeeTypeId(applicableFee) });
+      setApplicableFeeForm({ StudentId: applicableFeeStudentId(applicableFee), SectionId: "", FeeTypeIds: [applicableFeeTypeId(applicableFee)] });
     } catch (error) {
       notify("error", "Charged fee unavailable", error instanceof ApiError ? error.message : "Unable to load this charged fee.");
     }
@@ -249,22 +274,93 @@ export default function FeeManagementPage() {
     }
   };
 
-  const handleApplicableFeeSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!applicableFeeForm.StudentId || !applicableFeeForm.FeeTypeId) {
-      notify("error", "Validation failed", "Select a student and fee type.");
-      return;
+  const hasSelectedTarget = (selectionMode: "student" | "section", selectedStudentId: string, selectedSectionId: string) => {
+    if (selectionMode === "student") return Boolean(selectedStudentId);
+    return Boolean(selectedSectionId);
+  };
+
+  const getTargetStudentIds = async (selectionMode: "student" | "section", selectedStudentId: string, selectedSectionId: string) => {
+    if (selectionMode === "student") {
+      return selectedStudentId ? [selectedStudentId] : [];
     }
 
-    const payload: ApplicableFeePayload = applicableFeeForm;
+    if (!selectedSectionId) return [];
+    const sectionStudents = await listStudentsBySectionId(selectedSectionId);
+    return [...new Set(sectionStudents.map(studentId).filter(Boolean))];
+  };
+
+  const handleApplicableFeeSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (editingApplicableFeeId) {
+      if (!applicableFeeForm.StudentId || !applicableFeeForm.FeeTypeIds.length) {
+        notify("error", "Validation failed", "Select a student and at least one fee type.");
+        return;
+      }
+      const duplicate = applicableFees.some((fee) =>
+        comparableId(applicableFeeId(fee)) !== comparableId(editingApplicableFeeId)
+        && applicableFeePairKey(applicableFeeStudentIdFor(fee, students), applicableFeeTypeIdFor(fee, feeTypes)) === applicableFeePairKey(applicableFeeForm.StudentId, applicableFeeForm.FeeTypeIds[0]),
+      );
+      if (duplicate) {
+        notify("error", "Fee already assigned", "This fee type is already assigned to this student.");
+        return;
+      }
+    } else {
+      const selectedTarget = hasSelectedTarget(applicableFeeTargetMode, applicableFeeForm.StudentId, applicableFeeForm.SectionId);
+      const targetStudentIds = await getTargetStudentIds(applicableFeeTargetMode, applicableFeeForm.StudentId, applicableFeeForm.SectionId);
+      if (!selectedTarget) {
+        notify("error", "Validation failed", "Select a target and at least one fee type to apply.");
+        return;
+      }
+      if (targetStudentIds.length === 0) {
+        notify("error", "Validation failed", "No students were found in the selected section.");
+        return;
+      }
+      if (applicableFeeForm.FeeTypeIds.length === 0) {
+        notify("error", "Validation failed", "Select at least one fee type to apply.");
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       if (editingApplicableFeeId) {
+        const payload: ApplicableFeePayload = { StudentId: applicableFeeForm.StudentId, FeeTypeId: applicableFeeForm.FeeTypeIds[0] };
         await updateApplicableFee(editingApplicableFeeId, payload);
         notify("success", "Charged fee updated", "The student's charged fee was updated successfully.");
       } else {
-        await createApplicableFee(payload);
-        notify("success", "Fee charged", "The fee was charged to the student successfully.");
+        const targetStudentIds = await getTargetStudentIds(applicableFeeTargetMode, applicableFeeForm.StudentId, applicableFeeForm.SectionId);
+        const requestedItems: BulkApplicableFeePayload = targetStudentIds.flatMap((studentIdValue) => applicableFeeForm.FeeTypeIds.map((feeTypeIdValue) => ({ StudentId: studentIdValue, FeeTypeId: feeTypeIdValue })));
+        let currentAssignments: ApplicableFee[];
+        try {
+          currentAssignments = applicableFeeTargetMode === "section"
+            ? await listApplicableFeesBySection(applicableFeeForm.SectionId)
+            : await listApplicableFeesByStudent(applicableFeeForm.StudentId);
+        } catch (error) {
+          if (error instanceof ApiError && /no applicable fees found/i.test(error.message)) {
+            currentAssignments = [];
+          } else {
+            throw error;
+          }
+        }
+        const existingPairs = new Set(currentAssignments.map((fee) => {
+          const assignedStudentId = applicableFeeStudentIdFor(fee, students) || (applicableFeeTargetMode === "student" ? applicableFeeForm.StudentId : "");
+          return applicableFeePairKey(assignedStudentId, applicableFeeTypeIdFor(fee, feeTypes));
+        }));
+        const submittedPairs = new Set<string>();
+        const payload = requestedItems.filter((item) => {
+          const key = applicableFeePairKey(item.StudentId, item.FeeTypeId);
+          if (existingPairs.has(key) || submittedPairs.has(key)) return false;
+          submittedPairs.add(key);
+          return true;
+        });
+        const skippedCount = requestedItems.length - payload.length;
+        if (payload.length === 0) {
+          notify("error", "Fees already charged", "The selected fee types are already assigned to all targeted students.");
+          return;
+        }
+        await createApplicableFeesBulk(payload);
+        notify("success", "Fees charged", `Applied ${payload.length} student-fee assignments${skippedCount ? `; skipped ${skippedCount} duplicate assignments.` : "."}`);
       }
       resetApplicableFeeForm();
       await loadData();
@@ -277,23 +373,45 @@ export default function FeeManagementPage() {
 
   const handleGenerateInvoice = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!invoiceForm.StudentId || invoiceForm.FeeTypeIds.length === 0 || !invoiceForm.Month.trim() || !invoiceForm.Year.trim() || !invoiceForm.DueDate) {
-      notify("error", "Validation failed", "Select a student, at least one charged fee, month, year, and due date.");
+    const selectedTarget = hasSelectedTarget(invoiceTargetMode, invoiceForm.StudentId, invoiceForm.SectionId);
+    if (!selectedTarget) {
+      notify("error", "Validation failed", "Select a target, at least one fee type, month, year, and due date.");
+      return;
+    }
+    if (invoiceForm.FeeTypeIds.length === 0 || !invoiceForm.Month.trim() || !invoiceForm.Year.trim() || !invoiceForm.DueDate) {
+      notify("error", "Validation failed", "Select at least one fee type, month, year, and due date.");
       return;
     }
 
-    const payload: GenerateInvoicePayload = {
-      fees: invoiceForm.FeeTypeIds.map((feeTypeId) => ({ studentId: invoiceForm.StudentId, feeTypeId })),
+    const fees = invoiceTargetMode === "student"
+      ? invoiceForm.FeeTypeIds.map((feeTypeIdValue) => ({ StudentId: invoiceForm.StudentId, FeeTypeId: feeTypeIdValue }))
+      : sectionApplicableFees
+          .filter((fee) => invoiceForm.FeeTypeIds.includes(applicableFeeTypeIdFor(fee, feeTypes)))
+          .map((fee) => ({
+            StudentId: applicableFeeStudentIdFor(fee, sectionStudents),
+            FeeTypeId: applicableFeeTypeIdFor(fee, feeTypes),
+          }))
+          .filter((fee) => Boolean(fee.StudentId && fee.FeeTypeId))
+          .filter((fee, index, allFees) => allFees.findIndex((item) => comparableId(item.StudentId) === comparableId(fee.StudentId) && comparableId(item.FeeTypeId) === comparableId(fee.FeeTypeId)) === index);
+
+    if (fees.length === 0) {
+      notify("error", "Validation failed", "No selected charged fees could be matched to a student.");
+      return;
+    }
+
+    const payload: BulkGenerateInvoicePayload = {
+      fees,
       month: invoiceForm.Month.trim(),
       year: invoiceForm.Year.trim(),
       dueDate: `${invoiceForm.DueDate}T00:00:00`,
     };
     setGeneratingInvoice(true);
     try {
-      const invoices = await generateInvoice(payload);
+      const invoices = await generateInvoicesBulk(payload);
       const invoiceNumber = invoices[0]?.invoiceNum ?? invoices[0]?.InvoiceNum;
       notify("success", "Invoice generated", invoiceNumber ? `Invoice ${invoiceNumber} was generated successfully.` : "The invoice was generated successfully.");
       setInvoiceForm(newInvoiceForm());
+      setPendingFees([]);
     } catch (error) {
       notify("error", "Invoice generation failed", error instanceof ApiError ? error.message : "Unable to generate the invoice.");
     } finally {
@@ -302,8 +420,10 @@ export default function FeeManagementPage() {
   };
 
   const handleInvoiceStudentChange = async (studentIdValue: string) => {
-    setInvoiceForm((current) => ({ ...current, StudentId: studentIdValue, FeeTypeIds: [] }));
+    setInvoiceForm((current) => ({ ...current, StudentId: studentIdValue, SectionId: "", FeeTypeIds: [] }));
     setPendingFees([]);
+    setSectionApplicableFees([]);
+    setSectionStudents([]);
     if (!studentIdValue) return;
 
     setPendingFeesLoading(true);
@@ -404,6 +524,9 @@ export default function FeeManagementPage() {
     }, new Map<string, Invoice[]>()),
   );
   const sortedTransactions = [...transactions].sort((first, second) => new Date(second.paidAt ?? 0).getTime() - new Date(first.paidAt ?? 0).getTime());
+  const invoiceSelectableFees = invoiceTargetMode === "student"
+    ? pendingFees
+    : [...new Map(sectionApplicableFees.map((fee) => [applicableFeeTypeIdFor(fee, feeTypes) || comparableId(applicableFeeName(fee)), fee])).values()];
 
   return (
     <ProtectedRoute allowedRoles={["HOD"]}>
@@ -488,20 +611,37 @@ export default function FeeManagementPage() {
             )}
           </Card>
           <Card>
-            <h2 className="mb-4 text-lg font-semibold theme-text">{editingApplicableFeeId ? "Edit charged fee" : "Charge a student"}</h2>
+            <h2 className="mb-4 text-lg font-semibold theme-text">{editingApplicableFeeId ? "Edit charged fee" : "Apply bulk fee"}</h2>
             <form className="space-y-4" onSubmit={handleApplicableFeeSubmit} noValidate>
-              <Select label="Student" value={applicableFeeForm.StudentId} onChange={(event) => setApplicableFeeForm((current) => ({ ...current, StudentId: event.target.value }))} disabled={submitting}>
+              <Select label="Apply to" value={applicableFeeTargetMode} onChange={(event) => {
+                setApplicableFeeTargetMode(event.target.value as "student" | "section");
+                setApplicableFeeForm((current) => ({ ...current, StudentId: "", SectionId: "", FeeTypeIds: [] }));
+              }} disabled={submitting}>
+                <option value="student">Single student</option>
+                <option value="section">Specific section</option>
+              </Select>
+              {applicableFeeTargetMode === "student" ? <Select label="Student" value={applicableFeeForm.StudentId} onChange={(event) => setApplicableFeeForm((current) => ({ ...current, StudentId: event.target.value }))} disabled={submitting}>
                 <option value="">Select student</option>
                 {students.map((student) => <option key={studentId(student)} value={studentId(student)}>{studentName(student)}</option>)}
-              </Select>
-              <Select label="Fee type" value={applicableFeeForm.FeeTypeId} onChange={(event) => setApplicableFeeForm((current) => ({ ...current, FeeTypeId: event.target.value }))} disabled={submitting}>
-                <option value="">Select fee type</option>
-                {feeTypes.map((feeType) => <option key={feeTypeId(feeType)} value={feeTypeId(feeType)}>{feeTypeName(feeType)} - {feeType.Amount ?? feeType.amount ?? 0} {feeType.Currency ?? feeType.currency ?? "PKR"}</option>)}
-              </Select>
-              <p className="text-xs theme-text-muted">A student can receive multiple fee charges by selecting different fee types.</p>
+              </Select> : null}
+              {applicableFeeTargetMode === "section" ? <Select label="Section" value={applicableFeeForm.SectionId} onChange={(event) => setApplicableFeeForm((current) => ({ ...current, SectionId: event.target.value }))} disabled={submitting}>
+                <option value="">Select section</option>
+                {sections.map((section) => <option key={sectionId(section)} value={sectionId(section)}>{sectionName(section)}</option>)}
+              </Select> : null}
+              <div className="space-y-2">
+                <p className="text-sm font-medium theme-text-soft">Fee types</p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {feeTypes.map((feeType) => {
+                    const id = feeTypeId(feeType);
+                    const checked = applicableFeeForm.FeeTypeIds.includes(id);
+                    return <label key={id} className="flex items-center gap-3 rounded-lg border border-black/10 theme-bg-input p-3 text-sm theme-text"><input type="checkbox" checked={checked} onChange={(event) => setApplicableFeeForm((current) => ({ ...current, FeeTypeIds: event.target.checked ? [...current.FeeTypeIds, id] : current.FeeTypeIds.filter((item) => item !== id) }))} disabled={submitting} />{feeTypeName(feeType)} - {feeType.Amount ?? feeType.amount ?? 0} {feeType.Currency ?? feeType.currency ?? "PKR"}</label>;
+                  })}
+                </div>
+              </div>
+              <p className="text-xs theme-text-muted">This can apply one or many fee types to one student or every student in a section.</p>
               <div className="flex justify-end gap-3">
                 {editingApplicableFeeId ? <Button type="button" variant="ghost" onClick={resetApplicableFeeForm}>Cancel</Button> : null}
-                <Button type="submit" loading={submitting}>{submitting ? "Saving..." : editingApplicableFeeId ? "Save changes" : "Charge fee"}</Button>
+                <Button type="submit" loading={submitting}>{submitting ? "Saving..." : editingApplicableFeeId ? "Save changes" : "Apply fee"}</Button>
               </div>
             </form>
           </Card>
@@ -510,19 +650,53 @@ export default function FeeManagementPage() {
           <h2 className="mb-4 text-lg font-semibold theme-text">Generate invoice</h2>
           <form className="space-y-4" onSubmit={handleGenerateInvoice} noValidate>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Select label="Student" value={invoiceForm.StudentId} onChange={(event) => void handleInvoiceStudentChange(event.target.value)} disabled={generatingInvoice || pendingFeesLoading}>
+              <Select label="Target type" value={invoiceTargetMode} onChange={(event) => {
+                const nextMode = event.target.value as "student" | "section";
+                setInvoiceTargetMode(nextMode);
+                setInvoiceForm((current) => ({ ...current, StudentId: "", SectionId: "", FeeTypeIds: [] }));
+                setSectionApplicableFees([]);
+                setSectionStudents([]);
+                setPendingFees([]);
+              }} disabled={generatingInvoice}>
+                <option value="student">Single student</option>
+                <option value="section">Specific section</option>
+              </Select>
+              {invoiceTargetMode === "student" ? <Select label="Student" value={invoiceForm.StudentId} onChange={(event) => { setInvoiceForm((current) => ({ ...current, StudentId: event.target.value })); void handleInvoiceStudentChange(event.target.value); }} disabled={generatingInvoice || pendingFeesLoading}>
                 <option value="">Select student</option>
                 {students.map((student) => <option key={studentId(student)} value={studentId(student)}>{studentName(student)}</option>)}
-              </Select>
+              </Select> : null}
+              {invoiceTargetMode === "section" ? <Select label="Section" value={invoiceForm.SectionId} onChange={async (event) => {
+                const nextSectionId = event.target.value;
+                setInvoiceForm((current) => ({ ...current, SectionId: nextSectionId, StudentId: "", FeeTypeIds: [] }));
+                setSectionApplicableFees([]);
+                setSectionStudents([]);
+                if (!nextSectionId) return;
+                setSectionFeesLoading(true);
+                try {
+                  const [sectionFees, sectionStudentData] = await Promise.all([
+                    listApplicableFeesBySection(nextSectionId),
+                    listStudentsBySectionId(nextSectionId),
+                  ]);
+                  setSectionApplicableFees(sectionFees);
+                  setSectionStudents(sectionStudentData);
+                } catch (error) {
+                  notify("error", "Section fees unavailable", error instanceof ApiError ? error.message : "Unable to load charged fees for this section.");
+                } finally {
+                  setSectionFeesLoading(false);
+                }
+              }} disabled={generatingInvoice}>
+                <option value="">Select section</option>
+                {sections.map((section) => <option key={sectionId(section)} value={sectionId(section)}>{sectionName(section)}</option>)}
+              </Select> : null}
               <Select label="Month" value={invoiceForm.Month} onChange={(event) => setInvoiceForm((current) => ({ ...current, Month: event.target.value }))} disabled={generatingInvoice}>
                 {(["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"] as const).map((month) => <option key={month} value={month}>{month}</option>)}
               </Select>
               <Input label="Year" placeholder="2026" value={invoiceForm.Year} onChange={(event) => setInvoiceForm((current) => ({ ...current, Year: event.target.value }))} disabled={generatingInvoice} />
               <Input label="Due date" type="date" value={invoiceForm.DueDate} onChange={(event) => setInvoiceForm((current) => ({ ...current, DueDate: event.target.value }))} disabled={generatingInvoice} />
             </div>
-            <fieldset disabled={!invoiceForm.StudentId || generatingInvoice}>
+            <fieldset disabled={generatingInvoice}>
               <legend className="mb-2 block text-sm theme-text-soft">Charged fees to include</legend>
-              {!invoiceForm.StudentId ? <p className="text-sm theme-text-muted">Select a student to see pending fees.</p> : pendingFeesLoading ? <p className="text-sm theme-text-muted">Loading pending fees...</p> : pendingFees.length === 0 ? <p className="text-sm theme-text-muted">This student has no pending fees.</p> : <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{pendingFees.map((fee) => { const id = applicableFeeId(fee); const typeId = applicableFeeTypeId(fee); const feeType = feeTypes.find((item) => comparableId(feeTypeId(item)) === comparableId(typeId)) ?? applicableFeeType(fee); return <label key={id} className="flex items-center gap-3 rounded-lg border border-black/10 theme-bg-input p-3 text-sm theme-text"><input type="checkbox" checked={invoiceForm.FeeTypeIds.includes(typeId)} onChange={(event) => setInvoiceForm((current) => ({ ...current, FeeTypeIds: event.target.checked ? [...current.FeeTypeIds, typeId] : current.FeeTypeIds.filter((item) => item !== typeId) }))} />{applicableFeeName(fee, feeType)} - {applicableFeeAmount(fee, feeType)} {feeType?.Currency ?? feeType?.currency ?? "PKR"}</label>; })}</div>}
+              {invoiceTargetMode === "student" && !invoiceForm.StudentId ? <p className="text-sm theme-text-muted">Select a student to see pending fees.</p> : invoiceTargetMode === "section" && !invoiceForm.SectionId ? <p className="text-sm theme-text-muted">Select a section to see its charged fees.</p> : pendingFeesLoading || sectionFeesLoading ? <p className="text-sm theme-text-muted">Loading charged fees...</p> : invoiceSelectableFees.length === 0 ? <p className="text-sm theme-text-muted">No charged fees are available for the selected target.</p> : <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{invoiceSelectableFees.map((fee) => { const id = applicableFeeId(fee); const feeType = feeTypes.find((item) => comparableId(feeTypeName(item)) === comparableId(applicableFeeName(fee))) ?? applicableFeeType(fee); const typeId = applicableFeeTypeId(fee) || feeTypeId(feeType ?? {}); return <label key={id || `${typeId}-${applicableFeeName(fee)}`} className="flex items-center gap-3 rounded-lg border border-black/10 theme-bg-input p-3 text-sm theme-text"><input type="checkbox" checked={invoiceForm.FeeTypeIds.includes(typeId)} disabled={!typeId} onChange={(event) => setInvoiceForm((current) => ({ ...current, FeeTypeIds: event.target.checked ? [...current.FeeTypeIds, typeId] : current.FeeTypeIds.filter((item) => item !== typeId) }))} />{applicableFeeName(fee, feeType)} - {applicableFeeAmount(fee, feeType)} {feeType?.Currency ?? feeType?.currency ?? "PKR"}</label>; })}</div>}
             </fieldset>
             <div className="flex justify-end"><Button type="submit" loading={generatingInvoice}>{generatingInvoice ? "Generating..." : "Generate invoice"}</Button></div>
           </form>
