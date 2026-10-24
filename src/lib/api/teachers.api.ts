@@ -18,6 +18,9 @@ function normalizeTeacher(teacher: Teacher): Teacher {
     Address: teacher.Address ?? teacher.address,
     Active: teacher.Active ?? teacher.IsActive ?? teacher.isActive,
     Role: teacher.Role ?? teacher.role,
+    AssignedSections: teacher.AssignedSections ?? teacher.assignedSections ?? [],
+    AssignedCourses: teacher.AssignedCourses ?? teacher.assignedCourses ?? [],
+    Assignments: teacher.Assignments ?? teacher.assignments ?? [],
   };
 }
 

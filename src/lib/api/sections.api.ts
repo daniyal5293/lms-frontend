@@ -1,20 +1,26 @@
 import { apiFetch } from "@/src/lib/api/client";
 import type { Section } from "@/src/lib/types";
+import { formatSectionLabel } from "@/src/lib/utils";
 
 type RawSection = Section & {
   sectionId?: string;
+  SectionId?: string;
   sectionName?: string;
+  SectionName?: string;
   intermediateClass?: string;
   startDate?: string;
   isActive?: boolean;
 };
 
 function normalizeSection(section: RawSection): Section {
+  const sectionName = section.Name ?? section.sectionName ?? section.SectionName ?? "Unnamed section";
+  const intermediateClass = section.IntermediateClass ?? section.intermediateClass;
   return {
     ...section,
-    Id: section.Id ?? section.id ?? section.sectionId ?? section.section_id,
-    Name: section.Name ?? section.sectionName ?? "Unnamed section",
-    IntermediateClass: section.IntermediateClass ?? section.intermediateClass,
+    Id: section.Id ?? section.id ?? section.sectionId ?? section.SectionId ?? section.section_id,
+    sectionName,
+    IntermediateClass: intermediateClass,
+    Name: formatSectionLabel({ Name: sectionName, IntermediateClass: intermediateClass }, sectionName),
     StartDate: section.StartDate ?? section.startDate,
     IsActive: section.IsActive ?? section.isActive,
   };

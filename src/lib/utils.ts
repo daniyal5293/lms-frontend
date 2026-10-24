@@ -1,7 +1,29 @@
-import type { Role, User } from "@/src/lib/types";
+import type { Role, Section, Student, User } from "@/src/lib/types";
 
 export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
+}
+
+/** Display label including intermediate class, e.g. "XI - Pre-Engineering (A)". */
+export function formatSectionLabel(
+  section?: Pick<Section, "Name" | "sectionName" | "IntermediateClass" | "intermediateClass"> | null,
+  fallback = "Section",
+) {
+  if (!section) return fallback;
+  const name = section.Name ?? section.sectionName ?? "";
+  const intermediate = section.IntermediateClass ?? section.intermediateClass ?? "";
+  if (intermediate && name) {
+    if (name.startsWith(`${intermediate} -`) || name.startsWith(`${intermediate} `)) return name;
+    return `${intermediate} - ${name}`;
+  }
+  return name || intermediate || fallback;
+}
+
+export function studentSectionLabel(student: Student) {
+  const section = student.Section ?? student.section;
+  if (typeof section === "string" && section.trim()) return section;
+  if (section && typeof section === "object") return formatSectionLabel(section);
+  return "Unassigned";
 }
 
 export function formatDate(value?: string | null) {

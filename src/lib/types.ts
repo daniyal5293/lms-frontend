@@ -67,6 +67,12 @@ export type Teacher = {
   address?: string | null;
   Role?: string;
   role?: string;
+  AssignedSections?: string[];
+  assignedSections?: string[];
+  AssignedCourses?: string[];
+  assignedCourses?: string[];
+  Assignments?: string[];
+  assignments?: string[];
 };
 
 export type Course = {
@@ -231,7 +237,9 @@ export type Student = {
   studentEnrollmentId?: string;
   EnrollmentId?: string;
   enrollmentId?: string;
-  Section?: Section | null;
+  /** Backend often returns a display string like "XI - Pre-Engineering (A)". */
+  Section?: string | Section | null;
+  section?: string | Section | null;
 };
 
 export type TeacherSectionCourse = {

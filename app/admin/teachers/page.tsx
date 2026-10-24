@@ -48,7 +48,15 @@ export default function AdminTeachersPage() {
       const fullName = `${teacher.Fullname ?? teacher.FullName ?? teacher.fullname ?? ""}`.toLowerCase();
       const email = (teacher.Email ?? teacher.email ?? "").toLowerCase();
       const department = (teacher.Department ?? teacher.department ?? "").toLowerCase();
-      return fullName.includes(value) || email.includes(value) || department.includes(value);
+      const courses = (teacher.AssignedCourses ?? teacher.assignedCourses ?? []).join(" ").toLowerCase();
+      const sections = (teacher.AssignedSections ?? teacher.assignedSections ?? []).join(" ").toLowerCase();
+      return (
+        fullName.includes(value) ||
+        email.includes(value) ||
+        department.includes(value) ||
+        courses.includes(value) ||
+        sections.includes(value)
+      );
     });
   }, [query, teachers]);
 
@@ -130,7 +138,7 @@ export default function AdminTeachersPage() {
         <div className="max-w-md">
           <Input
             label="Search"
-            placeholder="Search by name, email, or department"
+            placeholder="Search by name, email, department, course, or section"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
@@ -152,6 +160,8 @@ export default function AdminTeachersPage() {
                 <tr>
                   <th className="px-3 py-3 font-medium theme-text-muted">Name</th>
                   <th className="px-3 py-3 font-medium theme-text-muted">Email</th>
+                  <th className="px-3 py-3 font-medium theme-text-muted">Courses</th>
+                  <th className="px-3 py-3 font-medium theme-text-muted">Sections</th>
                   <th className="px-3 py-3 font-medium theme-text-muted">Department</th>
                   <th className="px-3 py-3 font-medium theme-text-muted">Status</th>
                   <th className="px-3 py-3 font-medium theme-text-muted">Hire</th>
@@ -159,12 +169,40 @@ export default function AdminTeachersPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredTeachers.map((teacher) => (
+                {filteredTeachers.map((teacher) => {
+                  const courses = teacher.AssignedCourses ?? teacher.assignedCourses ?? [];
+                  const sections = teacher.AssignedSections ?? teacher.assignedSections ?? [];
+                  return (
                   <tr key={teacher.Id ?? teacher.id ?? teacher.teacher_id ?? `${teacher.Email}-${teacher.Fullname ?? teacher.FullName ?? teacher.fullname}`} className="border-b border-black/5">
                     <td className="px-3 py-3">
                       <div className="font-medium">{teacher.Fullname ?? teacher.FullName ?? teacher.fullname ?? "Unknown"}</div>
                     </td>
                     <td className="px-3 py-3 theme-text-soft">{teacher.Email ?? teacher.email ?? "Not provided"}</td>
+                    <td className="px-3 py-3 theme-text-soft">
+                      {courses.length === 0 ? (
+                        <span className="theme-text-muted">None</span>
+                      ) : (
+                        <div className="flex max-w-xs flex-wrap gap-1">
+                          {courses.map((course) => (
+                            <Badge key={course} tone="info">{course}</Badge>
+                          ))}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-3 py-3 theme-text-soft">
+                      {sections.length === 0 ? (
+                        <span className="theme-text-muted">None</span>
+                      ) : (
+                        <div className="max-w-sm space-y-0.5 text-xs">
+                          {sections.slice(0, 4).map((section) => (
+                            <div key={section}>{section}</div>
+                          ))}
+                          {sections.length > 4 ? (
+                            <div className="theme-text-muted">+{sections.length - 4} more</div>
+                          ) : null}
+                        </div>
+                      )}
+                    </td>
                     <td className="px-3 py-3 theme-text-soft">{teacher.Department ?? teacher.department ?? "Not provided"}</td>
                     <td className="px-3 py-3">
                       <Badge tone={teacher.Active ?? teacher.IsActive ?? teacher.isActive ? "success" : "warning"}>
@@ -199,7 +237,8 @@ export default function AdminTeachersPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

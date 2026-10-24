@@ -2,21 +2,30 @@ import { apiDownload, apiFetch } from "@/src/lib/api/client";
 import type { Student } from "@/src/lib/types";
 
 function normalizeStudent(student: Student): Student {
+  const rawSection = student.Section ?? student.section;
+  const sectionLabel =
+    typeof rawSection === "string"
+      ? rawSection
+      : rawSection && typeof rawSection === "object"
+        ? rawSection.Name ?? rawSection.sectionName ?? ""
+        : "";
+
   return {
     ...student,
     Id:
       student.Id ??
       student.id ??
+      student.StudentId ??
+      student.studentId ??
+      student.student_id ??
       student.StudentEnrollmentId ??
       student.studentEnrollmentId ??
       student.EnrollmentId ??
-      student.enrollmentId ??
-      student.StudentId ??
-      student.studentId ??
-      student.student_id,
+      student.enrollmentId,
     FullName: student.FullName ?? student.fullName,
     Email: student.Email ?? student.email,
     SectionId: student.SectionId ?? student.sectionId,
+    Section: sectionLabel || rawSection || null,
   };
 }
 
