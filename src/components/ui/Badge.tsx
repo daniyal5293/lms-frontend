@@ -5,10 +5,11 @@ export function Badge({
   tone = "default",
 }: {
   children: React.ReactNode;
-  tone?: "default" | "success" | "warning" | "info" | "danger";
+  tone?: "default" | "primary" | "success" | "warning" | "info" | "danger";
 }) {
   const tones = {
     default: "border-black/10 bg-black/5 theme-text",
+    primary: "theme-border-primary theme-bg-primary-soft theme-text-primary",
     success: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
     warning: "border-amber-500/40 bg-amber-500/10 text-amber-300",
     info: "theme-border-secondary-muted theme-bg-secondary-soft theme-text-secondary",

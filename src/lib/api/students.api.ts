@@ -25,6 +25,8 @@ function normalizeStudent(student: Student): Student {
     FullName: student.FullName ?? student.fullName,
     Email: student.Email ?? student.email,
     SectionId: student.SectionId ?? student.sectionId,
+    DepartmentId: student.DepartmentId ?? student.departmentId,
+    Department: student.Department ?? student.department,
     Section: sectionLabel || rawSection || null,
   };
 }
@@ -50,6 +52,7 @@ export type CreateStudentPayload = {
   enrollmentDate: string;
   cnic: string;
   sectionId: string;
+  departmentId: string;
 };
 
 export async function createStudent(payload: CreateStudentPayload) {
@@ -75,9 +78,11 @@ export async function listStudentsBySectionId(sectionId: string) {
 }
 
 export async function updateStudent(id: string, payload: CreateStudentPayload) {
+  // An empty departmentId cannot bind to the API's Guid?; omitting it keeps the current department
+  const { departmentId, ...rest } = payload;
   return apiFetch<Student>(`/api/student/${id}`, {
     method: "PUT",
-    body: JSON.stringify(payload),
+    body: JSON.stringify(departmentId ? payload : rest),
   });
 }
 

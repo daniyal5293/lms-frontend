@@ -6,6 +6,7 @@ import { useState } from "react";
 import { logoutUser } from "@/src/lib/api/auth.api";
 import { useAuth } from "@/src/components/providers/AuthProvider";
 import { useNotifications } from "@/src/components/providers/NotificationProvider";
+import { NotificationBell } from "@/src/components/layout/NotificationBell";
 import { cn, getInitials } from "@/src/lib/utils";
 import type { Role } from "@/src/lib/types";
 
@@ -19,10 +20,10 @@ export function Header() {
   const currentUser = user;
   const role = currentUser?.Roles?.[0] ?? "Student";
   const mobileNavigationByRole: Record<Role, { label: string; href: string }[]> = {
-    Admin: [{ label: "Dashboard", href: "/dashboard" }, { label: "Teachers", href: "/admin/teachers" }, { label: "Students", href: "/admin/students" }, { label: "Courses", href: "/admin/courses" }, { label: "Sections", href: "/admin/sections" }, { label: "Roles", href: "/admin/roles" }],
-    Teacher: [{ label: "Dashboard", href: "/dashboard" }, { label: "Exams", href: "/teacher" }, { label: "Attendance", href: "/teacher/attendance" }, { label: "Students", href: "/teacher/students" }],
-    Student: [{ label: "Dashboard", href: "/dashboard" }, { label: "Student Area", href: "/student" }],
-    HOD: [{ label: "Dashboard", href: "/dashboard" }, { label: "HOD Area", href: "/hod" }, { label: "Fee Management", href: "/hod/fee-management" }],
+    Admin: [{ label: "Dashboard", href: "/dashboard" }, { label: "Teachers", href: "/admin/teachers" }, { label: "Students", href: "/admin/students" }, { label: "Courses", href: "/admin/courses" }, { label: "Sections", href: "/admin/sections" }, { label: "Departments", href: "/admin/departments" }, { label: "Roles", href: "/admin/roles" }, { label: "Notifications", href: "/notifications" }],
+    Teacher: [{ label: "Dashboard", href: "/dashboard" }, { label: "Exams", href: "/teacher" }, { label: "Attendance", href: "/teacher/attendance" }, { label: "Students", href: "/teacher/students" }, { label: "Notifications", href: "/notifications" }],
+    Student: [{ label: "Dashboard", href: "/dashboard" }, { label: "Student Area", href: "/student" }, { label: "Notifications", href: "/notifications" }],
+    HOD: [{ label: "Dashboard", href: "/dashboard" }, { label: "HOD Area", href: "/hod" }, { label: "Fee Management", href: "/hod/fee-management" }, { label: "Notifications", href: "/notifications" }],
   };
 
   const handleLogout = async () => {
@@ -59,6 +60,7 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-3">
+          <NotificationBell />
           <div className="hidden rounded-xl border border-black/10 theme-bg-surface px-3 py-2 text-sm theme-text-soft sm:block">
             {currentUser?.Roles?.[0] ?? "User"}
           </div>

@@ -10,6 +10,7 @@ import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
 import { PageHeader } from "@/src/components/ui/PageHeader";
 import { Select } from "@/src/components/ui/Select";
+import { GroupedOptions } from "@/src/components/ui/GroupedOptions";
 import { useNotifications } from "@/src/components/providers/NotificationProvider";
 import {
   listExamsByTeacherId,
@@ -21,6 +22,8 @@ import { listResultsByExamId } from "@/src/lib/api/exams.api";
 import { ApiError } from "@/src/lib/api/client";
 import { listTeachers } from "@/src/lib/api/teachers.api";
 import { listTeacherSectionCoursesByTeacherId } from "@/src/lib/api/teacher-section-course.api";
+import { assignmentClass, assignmentLabel, assignmentSectionName, sortAssignments } from "@/src/lib/utils/assignment";
+import { shortProgramName } from "@/src/lib/utils";
 import type {
   Teacher,
   TeacherSectionCourse,
@@ -45,15 +48,9 @@ const sectionId = (assignment: TeacherSectionCourse) =>
 const normalizedId = (value: string) => value.trim().toLowerCase();
 
 const sectionName = (assignment: TeacherSectionCourse) =>
-  assignment.Section?.SectionName ??
-  assignment.Section?.Name ??
-  assignment.Section?.name ??
-  assignment.Section?.sectionName ??
-  assignment.section?.SectionName ??
-  assignment.section?.Name ??
-  assignment.section?.name ??
-  assignment.section?.sectionName ??
-  "Section name unavailable";
+  shortProgramName(assignmentSectionName(assignment)) || "Section name unavailable";
+
+const classGroup = (assignment: TeacherSectionCourse) => `Class ${assignmentClass(assignment) || "—"}`;
 
 const getTeacherId = (teacher: Teacher | undefined) =>
   teacher?.teacher_id ??
@@ -163,7 +160,7 @@ export default function TeacherExamsPage() {
         listExamTypes(),
       ]);
 
-      setAssignments(assignmentData);
+      setAssignments(sortAssignments(assignmentData));
       setExams(examData);
       setExamTypes(examTypeData);
 
@@ -233,6 +230,23 @@ export default function TeacherExamsPage() {
 
     return Array.from(uniqueSections.values());
   }, [assignments]);
+
+  /*
+   * Section tabs grouped by class (e.g. Class XI, Class XII).
+   */
+  const sectionGroups = useMemo(() => {
+    const groups = new Map<string, TeacherSectionCourse[]>();
+
+    sections
+      .slice()
+      .sort((a, b) => sectionName(a).localeCompare(sectionName(b)))
+      .forEach((assignment) => {
+        const group = classGroup(assignment);
+        groups.set(group, [...(groups.get(group) ?? []), assignment]);
+      });
+
+    return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
+  }, [sections]);
 
   /*
    * Get all TeacherSectionCourse IDs
@@ -381,20 +395,12 @@ export default function TeacherExamsPage() {
                   : "Select assignment"}
               </option>
 
-              {assignments.map((assignment) => (
-                <option
-                  key={assignmentId(assignment)}
-                  value={assignmentId(assignment)}
-                >
-                  {assignment.Course?.CourseName ??
-                    assignment.Course?.courseName ??
-                    assignment.course?.CourseName ??
-                    assignment.course?.courseName ??
-                    "Course"}{" "}
-                  -{" "}
-                  {sectionName(assignment)}
-                </option>
-              ))}
+              <GroupedOptions
+                items={assignments}
+                groupOf={classGroup}
+                valueOf={assignmentId}
+                labelOf={assignmentLabel}
+              />
             </Select>
 
             <Button
@@ -419,31 +425,37 @@ export default function TeacherExamsPage() {
           ) : (
             <>
               {/* SECTION NAVIGATION */}
-              <div className="mb-6 flex flex-wrap gap-2 border-b border-black/10 pb-4">
-                {sections.map((assignment) => {
-                  const id = sectionId(assignment);
-                  const name = sectionName(assignment);
-                  const active =
-                    normalizedId(id) === normalizedId(activeSectionId);
+              <div className="mb-6 space-y-2 border-b border-black/10 pb-4">
+                {sectionGroups.map(([group, groupSections]) => (
+                  <div key={group} className="flex flex-wrap items-center gap-2">
+                    <span className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wide theme-text-muted">
+                      {group}
+                    </span>
+                    {groupSections.map((assignment) => {
+                      const id = sectionId(assignment);
+                      const active =
+                        normalizedId(id) === normalizedId(activeSectionId);
 
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() =>
-                        setActiveSectionId(id)
-                      }
-                      className={[
-                        "rounded-lg px-4 py-2 text-sm font-medium transition",
-                        active
-                          ? "bg-white text-black"
-                          : "border border-black/10 theme-bg-page theme-text-muted hover:theme-text",
-                      ].join(" ")}
-                    >
-                      Section {name}
-                    </button>
-                  );
-                })}
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() =>
+                            setActiveSectionId(id)
+                          }
+                          className={[
+                            "rounded-lg px-4 py-2 text-sm font-medium transition",
+                            active
+                              ? "bg-white text-black"
+                              : "border border-black/10 theme-bg-page theme-text-muted hover:theme-text",
+                          ].join(" ")}
+                        >
+                          {sectionName(assignment)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
               </div>
 
               {/* EXAMS */}

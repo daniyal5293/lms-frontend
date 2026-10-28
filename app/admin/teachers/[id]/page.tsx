@@ -34,6 +34,8 @@ export default function TeacherDetailPage() {
   if (loading) return <AppShell><div className="py-10 text-center theme-text-muted">Loading teacher details...</div></AppShell>;
   if (!teacher) return <AppShell><div className="py-10 text-center theme-text-muted">Teacher not found.</div></AppShell>;
 
+  const isHod = (teacher.Role ?? teacher.role ?? "").toUpperCase() === "HOD";
+
   return (
     <AppShell>
       <PageHeader
@@ -51,9 +53,12 @@ export default function TeacherDetailPage() {
         <Card>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-white">Profile</h2>
-            <Badge tone={teacher.Active ?? teacher.IsActive ? "success" : "warning"}>
-              {teacher.Active ?? teacher.IsActive ? "Active" : "Inactive"}
-            </Badge>
+            <div className="flex gap-2">
+              {isHod ? <Badge tone="primary">HOD</Badge> : null}
+              <Badge tone={teacher.Active ?? teacher.IsActive ? "success" : "warning"}>
+                {teacher.Active ?? teacher.IsActive ? "Active" : "Inactive"}
+              </Badge>
+            </div>
           </div>
           <dl className="space-y-3 text-sm">
             <div className="flex justify-between gap-4 border-b border-white/10 pb-2"><dt className="theme-text-muted">Full name</dt><dd className="text-white">{teacher.Fullname ?? teacher.FullName ?? "Not provided"}</dd></div>
@@ -72,7 +77,7 @@ export default function TeacherDetailPage() {
             <div className="flex justify-between gap-4 border-b border-white/10 pb-2"><dt className="theme-text-muted">Identification</dt><dd className="text-white">{teacher.IdentificationNumber ?? teacher.identificationNumber ?? "Not provided"}</dd></div>
             <div className="flex justify-between gap-4 border-b border-white/10 pb-2"><dt className="theme-text-muted">Qualification</dt><dd className="text-white">{teacher.Qualification ?? teacher.qualification ?? "Not provided"}</dd></div>
             <div className="flex justify-between gap-4 border-b border-white/10 pb-2"><dt className="theme-text-muted">Address</dt><dd className="text-white">{teacher.Address ?? teacher.address ?? "Not provided"}</dd></div>
-            <div className="flex justify-between gap-4 border-b border-white/10 pb-2"><dt className="theme-text-muted">Role</dt><dd className="text-white">{teacher.Role ?? "Teacher"}</dd></div>
+            <div className="flex justify-between gap-4 border-b border-white/10 pb-2"><dt className="theme-text-muted">Role</dt><dd className="text-white">{isHod ? <Badge tone="primary">HOD</Badge> : teacher.Role ?? "Teacher"}</dd></div>
           </dl>
         </Card>
 

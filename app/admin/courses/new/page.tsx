@@ -13,6 +13,7 @@ import { ApiError } from "@/src/lib/api/client";
 
 const initialState = {
   CourseName: "",
+  CourseCode: "",
   CourseDescription: "",
   CourseDuration: ""
 };
@@ -36,6 +37,7 @@ export default function NewCoursePage() {
     try {
       await createCourse({
         courseName: form.CourseName.trim(),
+        courseCode: form.CourseCode.trim(),
         courseDescription: form.CourseDescription.trim(),
         courseDuration: Number(form.CourseDuration),
       });
@@ -57,6 +59,7 @@ export default function NewCoursePage() {
         <form className="space-y-6" onSubmit={handleSubmit} noValidate>
           <div className="grid gap-5 md:grid-cols-2">
             <Input label="Course name" value={form.CourseName} onChange={(event) => setForm((current) => ({ ...current, CourseName: event.target.value }))} />
+            <Input label="Course code" placeholder="e.g. PHY-101" maxLength={20} value={form.CourseCode} onChange={(event) => setForm((current) => ({ ...current, CourseCode: event.target.value }))} />
             <Input label="Duration" value={form.CourseDuration} onChange={(event) => setForm((current) => ({ ...current, CourseDuration: event.target.value }))} />
             <div className="md:col-span-2">
               <label className="block w-full text-sm theme-text" htmlFor="course-description">

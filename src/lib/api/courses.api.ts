@@ -4,6 +4,7 @@ import type { Course } from "@/src/lib/types";
 type RawCourse = Course & {
   courseId?: string;
   courseName?: string;
+  courseCode?: string | null;
   courseDescription?: string | null;
   courseDuration?: number;
 };
@@ -13,6 +14,7 @@ function normalizeCourse(course: RawCourse): Course {
     ...course,
     Id: course.Id ?? course.id ?? course.courseId ?? course.course_id,
     Name: course.Name ?? course.courseName ?? "Unnamed course",
+    Code: course.Code ?? course.courseCode ?? "",
     Description: course.Description ?? course.courseDescription,
     Credits: course.Credits ?? course.courseDuration ?? 0,
   };

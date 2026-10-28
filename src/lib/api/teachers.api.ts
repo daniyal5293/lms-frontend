@@ -9,6 +9,7 @@ function normalizeTeacher(teacher: Teacher): Teacher {
     FullName: teacher.FullName ?? teacher.Fullname ?? teacher.fullname,
     Email: teacher.Email ?? teacher.email,
     Department: teacher.Department ?? teacher.department,
+    DepartmentId: teacher.DepartmentId ?? teacher.departmentId,
     Salary: teacher.Salary ?? teacher.salary,
     CNIC: teacher.CNIC ?? teacher.cnic,
     DateOfBirth: teacher.DateOfBirth ?? teacher.dateOfBirth,

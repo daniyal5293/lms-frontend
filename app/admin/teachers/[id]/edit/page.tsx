@@ -6,6 +6,7 @@ import { AppShell } from "@/src/components/layout/AppShell";
 import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
 import { Input } from "@/src/components/ui/Input";
+import { DepartmentSelect } from "@/src/components/ui/DepartmentSelect";
 import { PageHeader } from "@/src/components/ui/PageHeader";
 import { useNotifications } from "@/src/components/providers/NotificationProvider";
 import { getTeacherById, updateTeacher } from "@/src/lib/api/teachers.api";
@@ -15,7 +16,7 @@ const initialState = {
   Fullname: "",
   Email: "",
   Address: "",
-  Department: "",
+  DepartmentId: "",
   Salary: "",
   CNIC: "",
   DateOfBirth: "",
@@ -41,7 +42,7 @@ export default function EditTeacherPage() {
           Fullname: teacher.Fullname ?? teacher.FullName ?? teacher.fullname ?? "",
           Email: teacher.Email ?? teacher.email ?? "",
           Address: teacher.Address ?? teacher.address ?? "",
-          Department: teacher.Department ?? teacher.department ?? "",
+          DepartmentId: teacher.DepartmentId ?? teacher.departmentId ?? "",
           Salary: teacher.Salary ?? teacher.salary ? String(teacher.Salary ?? teacher.salary) : "",
           CNIC: teacher.CNIC ?? teacher.cnic ?? "",
           DateOfBirth: teacher.DateOfBirth ?? teacher.dateOfBirth ? (teacher.DateOfBirth ?? teacher.dateOfBirth ?? "").slice(0, 10) : "",
@@ -72,7 +73,7 @@ export default function EditTeacherPage() {
         cnic: form.CNIC.trim(),
         qualification: form.Qualification.trim(),
         identificationNumber: form.IdentificationNumber.trim(),
-        department: form.Department.trim(),
+        departmentId: form.DepartmentId || null,
         dateOfBirth: `${form.DateOfBirth}T00:00:00`,
         hireDate: `${form.HireDate}T00:00:00`,
         address: form.Address.trim(),
@@ -99,7 +100,7 @@ export default function EditTeacherPage() {
           <div className="grid gap-5 md:grid-cols-2">
             <Input label="Full name" value={form.Fullname} onChange={(event) => setForm((current) => ({ ...current, Fullname: event.target.value }))} />
             <Input label="Email" type="email" value={form.Email} onChange={(event) => setForm((current) => ({ ...current, Email: event.target.value }))} />
-            <Input label="Department" value={form.Department} onChange={(event) => setForm((current) => ({ ...current, Department: event.target.value }))} />
+            <DepartmentSelect value={form.DepartmentId} onChange={(departmentId) => setForm((current) => ({ ...current, DepartmentId: departmentId }))} />
             <Input label="Salary" type="number" value={form.Salary} onChange={(event) => setForm((current) => ({ ...current, Salary: event.target.value }))} />
             <Input label="CNIC" value={form.CNIC} onChange={(event) => setForm((current) => ({ ...current, CNIC: event.target.value }))} />
             <Input label="Date of birth" type="date" value={form.DateOfBirth} onChange={(event) => setForm((current) => ({ ...current, DateOfBirth: event.target.value }))} />

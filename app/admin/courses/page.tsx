@@ -106,7 +106,7 @@ export default function AdminCoursesPage() {
               <tbody>
                 {filteredCourses.map((course) => (
                   <tr key={getCourseId(course) || course.Code} className="border-b border-black/5 align-top">
-                    <td className="px-3 py-3 font-medium theme-text">{course.Code}</td>
+                    <td className="px-3 py-3 font-medium theme-text">{course.Code || <span className="theme-text-muted">—</span>}</td>
                     <td className="px-3 py-3 theme-text-soft">{course.Name}</td>
                     <td className="px-3 py-3 theme-text-soft">{course.Credits}</td>
                     <td className="px-3 py-3 theme-text-soft max-w-md">{course.Description ?? "No description provided."}</td>

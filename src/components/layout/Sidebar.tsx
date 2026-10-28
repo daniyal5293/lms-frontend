@@ -16,22 +16,27 @@ const navigationByRole: Record<Role, { label: string; href: string }[]> = {
     { label: "Students", href: "/admin/students" },
     { label: "Courses", href: "/admin/courses" },
     { label: "Sections", href: "/admin/sections" },
+    { label: "Departments", href: "/admin/departments" },
     { label: "Roles", href: "/admin/roles" },
+    { label: "Notifications", href: "/notifications" },
   ],
   Teacher: [
     { label: "Dashboard", href: "/dashboard" },
     { label: "Exams", href: "/teacher" },
     { label: "Attendance", href: "/teacher/attendance" },
     { label: "Students", href: "/teacher/students" },
+    { label: "Notifications", href: "/notifications" },
   ],
   Student: [
     { label: "Dashboard", href: "/dashboard" },
     { label: "Student Area", href: "/student" },
+    { label: "Notifications", href: "/notifications" },
   ],
   HOD: [
     { label: "Dashboard", href: "/dashboard" },
     { label: "HOD Area", href: "/hod" },
     { label: "Fee Management", href: "/hod/fee-management" },
+    { label: "Notifications", href: "/notifications" },
   ],
 };
 

@@ -54,6 +54,7 @@ export default function EditCoursePage() {
     try {
       await updateCourse(courseId, {
         courseName: form.Name.trim(),
+        courseCode: form.Code.trim(),
         courseDescription: form.Description.trim(),
         courseDuration: Number(form.Credits),
       });
@@ -77,7 +78,7 @@ export default function EditCoursePage() {
         <form className="space-y-6" onSubmit={handleSubmit} noValidate>
           <div className="grid gap-5 md:grid-cols-2">
             <Input label="Course name" value={form.Name} onChange={(event) => setForm((current) => ({ ...current, Name: event.target.value }))} />
-            <Input label="Course code" value={form.Code} onChange={(event) => setForm((current) => ({ ...current, Code: event.target.value }))} />
+            <Input label="Course code" placeholder="e.g. PHY-101" maxLength={20} value={form.Code} onChange={(event) => setForm((current) => ({ ...current, Code: event.target.value }))} />
             <Input label="Credits" type="number" value={form.Credits} onChange={(event) => setForm((current) => ({ ...current, Credits: event.target.value }))} />
             <div className="md:col-span-2">
               <Input label="Description" value={form.Description} onChange={(event) => setForm((current) => ({ ...current, Description: event.target.value }))} />

@@ -10,6 +10,7 @@ import { Card } from "@/src/components/ui/Card";
 import { Input } from "@/src/components/ui/Input";
 import { PageHeader } from "@/src/components/ui/PageHeader";
 import { Select } from "@/src/components/ui/Select";
+import { GroupedOptions } from "@/src/components/ui/GroupedOptions";
 import { ApiError } from "@/src/lib/api/client";
 import {
   markBulkAttendance,
@@ -22,6 +23,7 @@ import {
 } from "@/src/lib/api/teacher-section-course.api";
 import { listTeachers } from "@/src/lib/api/teachers.api";
 import { getTeacherEntityId } from "@/src/lib/utils/teacher";
+import { assignmentClass, assignmentLabel, sortAssignments } from "@/src/lib/utils/assignment";
 import type { SectionStudent } from "@/src/lib/api/exams.api";
 import type {
   AttendanceStatus,
@@ -187,8 +189,9 @@ export default function TeacherAttendancePage() {
         }
 
         // Step 2: Get only this teacher's assignments
-        const assignmentData =
-          await listTeacherSectionCoursesByTeacherId(teacherId);
+        const assignmentData = sortAssignments(
+          await listTeacherSectionCoursesByTeacherId(teacherId),
+        );
 
         setAssignments(assignmentData);
 
@@ -462,24 +465,12 @@ export default function TeacherAttendancePage() {
                     : "Select assignment"}
                 </option>
 
-                {assignments.map((assignment) => (
-                  <option
-                    key={getAssignmentId(assignment)}
-                    value={getAssignmentId(assignment)}
-                  >
-                    {assignment.Course?.CourseName ??
-                      assignment.Course?.courseName ??
-                      assignment.course?.CourseName ??
-                      assignment.course?.courseName ??
-                      "Course"}{" "}
-                    -{" "}
-                    {assignment.Section?.SectionName ??
-                      assignment.Section?.sectionName ??
-                      assignment.section?.SectionName ??
-                      assignment.section?.sectionName ??
-                      "Section"}
-                  </option>
-                ))}
+                <GroupedOptions
+                  items={assignments}
+                  groupOf={(assignment) => `Class ${assignmentClass(assignment) || "—"}`}
+                  valueOf={getAssignmentId}
+                  labelOf={assignmentLabel}
+                />
               </Select>
 
               <Select

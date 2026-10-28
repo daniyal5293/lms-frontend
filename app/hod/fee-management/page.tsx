@@ -18,6 +18,7 @@ import { generateInvoicesBulk, listInvoiceHistoryByStudent, listPendingFeesByStu
 import { listSections } from "@/src/lib/api/sections.api";
 import { listStudents, listStudentsBySectionId } from "@/src/lib/api/students.api";
 import type { ApplicableFee, FeeCategory, FeeType, Invoice, Section, Student, Transaction } from "@/src/lib/types";
+import { studentSectionLabel } from "@/src/lib/utils";
 
 const categoryId = (category: FeeCategory) => category.categoryId ?? category.CategoryId ?? "";
 const categoryName = (category: FeeCategory) => category.categoryName ?? category.CategoryName ?? "";
@@ -89,7 +90,7 @@ function InvoicePdfDocument({ invoices, student }: { invoices: Invoice[]; studen
   const total = invoices.reduce((sum, invoice) => sum + invoiceAmount(invoice), 0);
   const totalPaid = invoices.reduce((sum, invoice) => sum + (invoice.amountPaid ?? invoice.AmountPaid ?? 0), 0);
   const totalDue = invoices.reduce((sum, invoice) => sum + invoiceAmountDue(invoice), 0);
-  const section = student.Section?.Name ?? student.Section?.sectionName ?? "-";
+  const section = studentSectionLabel(student);
 
   return <Document title={`Invoice - ${studentName(student)}`} author="LMS Portal"><Page size="A4" style={invoicePdfStyles.page}><View style={invoicePdfStyles.header}><View><Text style={invoicePdfStyles.brand}>LMS Portal</Text><Text style={invoicePdfStyles.muted}>Student invoice</Text></View><View><Text style={invoicePdfStyles.title}>Invoice</Text><Text style={invoicePdfStyles.muted}>{invoiceNumber(invoices[0])}</Text></View></View><View style={invoicePdfStyles.summary}><View><Text style={invoicePdfStyles.title}>Student details</Text><Text>{studentName(student)}</Text><Text style={invoicePdfStyles.muted}>Section: {section}</Text></View><View><Text style={invoicePdfStyles.title}>Invoice details</Text><Text>For: {invoices[0]?.month ?? invoices[0]?.Month ?? "-"} {invoices[0]?.year ?? invoices[0]?.Year ?? ""}</Text><Text>Due date: {invoiceDate(invoices[0]?.dueDate ?? invoices[0]?.DueDate)}</Text><Text>Total: {currency} {total.toFixed(2)}</Text><Text>Amount due: {currency} {totalDue.toFixed(2)}</Text></View></View><View style={invoicePdfStyles.table}><View style={[invoicePdfStyles.row, invoicePdfStyles.headerRow]}><Text style={[invoicePdfStyles.cell, invoicePdfStyles.feeCell]}>Fee</Text><Text style={[invoicePdfStyles.cell, invoicePdfStyles.amountCell]}>Amount</Text><Text style={[invoicePdfStyles.cell, invoicePdfStyles.forCell]}>For</Text></View>{invoices.map((invoice, index) => <View key={`${invoiceNumber(invoice)}-${invoice.id ?? invoice.Id ?? index}`} style={invoicePdfStyles.row}><Text style={[invoicePdfStyles.cell, invoicePdfStyles.feeCell]}>{invoiceFeeName(invoice)}</Text><Text style={[invoicePdfStyles.cell, invoicePdfStyles.amountCell]}>{currency} {invoiceAmount(invoice).toFixed(2)}</Text><Text style={[invoicePdfStyles.cell, invoicePdfStyles.forCell]}>{invoice.month ?? invoice.Month ?? "-"} {invoice.year ?? invoice.Year ?? ""}</Text></View>)}</View><View style={invoicePdfStyles.footer}><Text>Total amount: {currency} {total.toFixed(2)}</Text><Text>Paid: {currency} {totalPaid.toFixed(2)} | Balance due: {currency} {totalDue.toFixed(2)}</Text><Text>Generated on {new Date().toLocaleDateString()} | Amounts are shown in {currency}.</Text></View></Page></Document>;
 }

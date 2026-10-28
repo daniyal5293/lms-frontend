@@ -11,6 +11,7 @@ import { Card } from "@/src/components/ui/Card";
 import { Input } from "@/src/components/ui/Input";
 import { PageHeader } from "@/src/components/ui/PageHeader";
 import { Select } from "@/src/components/ui/Select";
+import { GroupedOptions } from "@/src/components/ui/GroupedOptions";
 import { ApiError } from "@/src/lib/api/client";
 import {
   createExam,
@@ -22,6 +23,7 @@ import {
   listTeacherSectionCoursesByTeacherId,
 } from "@/src/lib/api/teacher-section-course.api";
 import { getTeacherEntityId } from "@/src/lib/utils/teacher";
+import { assignmentClass, assignmentLabel, sortAssignments } from "@/src/lib/utils/assignment";
 import type {
   TeacherSectionCourse,
 } from "@/src/lib/types";
@@ -100,13 +102,14 @@ export default function NewExamPage() {
             queryAssignmentId
         );
 
-        setAssignments(ownAssignments);
+        const sortedAssignments = sortAssignments(ownAssignments);
+        setAssignments(sortedAssignments);
         setExamTypes(typeData);
 
         setForm((current) => ({
           ...current,
           TeacherSectionCourseId: assignmentId(
-            selected ?? ownAssignments[0]
+            selected ?? sortedAssignments[0]
           ),
         }));
       } catch (error) {
@@ -135,20 +138,8 @@ export default function NewExamPage() {
       window.location.search
     ).has("assignmentId");
 
-  const assignmentLabel = selectedAssignment
-    ? `${
-        selectedAssignment.Course?.CourseName ??
-        selectedAssignment.Course?.courseName ??
-        selectedAssignment.course?.CourseName ??
-        selectedAssignment.course?.courseName ??
-        "Course"
-      } - ${
-        selectedAssignment.Section?.SectionName ??
-        selectedAssignment.Section?.sectionName ??
-        selectedAssignment.section?.SectionName ??
-        selectedAssignment.section?.sectionName ??
-        "Section"
-      }`
+  const selectedAssignmentLabel = selectedAssignment
+    ? assignmentLabel(selectedAssignment)
     : "No assignment selected";
 
   const submit = async (
@@ -283,7 +274,7 @@ export default function NewExamPage() {
                     Assigned course and section
                   </span>
 
-                  {assignmentLabel}
+                  {selectedAssignmentLabel}
                 </div>
               ) : (
                 <Select
@@ -301,24 +292,12 @@ export default function NewExamPage() {
                     Select assignment
                   </option>
 
-                  {assignments.map((assignment) => (
-                    <option
-                      key={assignmentId(assignment)}
-                      value={assignmentId(assignment)}
-                    >
-                      {assignment.Course?.CourseName ??
-                        assignment.Course?.courseName ??
-                        assignment.course?.CourseName ??
-                        assignment.course?.courseName ??
-                        "Course"}{" "}
-                      -{" "}
-                      {assignment.Section?.SectionName ??
-                        assignment.Section?.sectionName ??
-                        assignment.section?.SectionName ??
-                        assignment.section?.sectionName ??
-                        "Section"}
-                    </option>
-                  ))}
+                  <GroupedOptions
+                    items={assignments}
+                    groupOf={(assignment) => `Class ${assignmentClass(assignment) || "—"}`}
+                    valueOf={assignmentId}
+                    labelOf={assignmentLabel}
+                  />
                 </Select>
               )}
 

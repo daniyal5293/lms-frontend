@@ -7,6 +7,7 @@ import { AppShell } from "@/src/components/layout/AppShell";
 import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
 import { Input } from "@/src/components/ui/Input";
+import { DepartmentSelect } from "@/src/components/ui/DepartmentSelect";
 import { PageHeader } from "@/src/components/ui/PageHeader";
 import { useNotifications } from "@/src/components/providers/NotificationProvider";
 import { createTeacher } from "@/src/lib/api/teachers.api";
@@ -18,7 +19,7 @@ const initialState = {
   cnic: "",
   qualification: "",
   identificationNumber: "",
-  department: "",
+  departmentId: "",
   dateOfBirth: "",
   hireDate: "",
   address: "",
@@ -40,7 +41,7 @@ export default function NewTeacherPage() {
     if (!form.cnic.trim()) nextErrors.cnic = "CNIC is required.";
     if (!form.qualification.trim()) nextErrors.qualification = "Qualification is required.";
     if (!form.identificationNumber.trim()) nextErrors.identificationNumber = "Employee ID is required.";
-    if (!form.department.trim()) nextErrors.department = "Department is required.";
+    if (!form.departmentId) nextErrors.departmentId = "Department is required.";
     if (!form.dateOfBirth) nextErrors.dateOfBirth = "Date of birth is required.";
     if (!form.hireDate) nextErrors.hireDate = "Hire date is required.";
     if (!form.address.trim()) nextErrors.address = "Address is required.";
@@ -63,7 +64,7 @@ export default function NewTeacherPage() {
         cnic: form.cnic.trim(),
         qualification: form.qualification.trim(),
         identificationNumber: form.identificationNumber.trim(),
-        department: form.department.trim(),
+        departmentId: form.departmentId,
         dateOfBirth: `${form.dateOfBirth}T00:00:00`,
         hireDate: `${form.hireDate}T00:00:00`,
         address: form.address.trim(),
@@ -92,7 +93,7 @@ export default function NewTeacherPage() {
             <Input label="CNIC" value={form.cnic} onChange={(event) => setForm((current) => ({ ...current, cnic: event.target.value }))} error={errors.cnic} />
             <Input label="Qualification" value={form.qualification} onChange={(event) => setForm((current) => ({ ...current, qualification: event.target.value }))} error={errors.qualification} />
             <Input label="Employee identification number" value={form.identificationNumber} onChange={(event) => setForm((current) => ({ ...current, identificationNumber: event.target.value }))} error={errors.identificationNumber} />
-            <Input label="Department" value={form.department} onChange={(event) => setForm((current) => ({ ...current, department: event.target.value }))} error={errors.department} />
+            <DepartmentSelect value={form.departmentId} onChange={(departmentId) => setForm((current) => ({ ...current, departmentId }))} error={errors.departmentId} />
             <Input label="Date of birth" type="date" value={form.dateOfBirth} onChange={(event) => setForm((current) => ({ ...current, dateOfBirth: event.target.value }))} error={errors.dateOfBirth} />
             <Input label="Hire date" type="date" value={form.hireDate} onChange={(event) => setForm((current) => ({ ...current, hireDate: event.target.value }))} error={errors.hireDate} />
             <Input label="Salary" type="number" value={form.salary} onChange={(event) => setForm((current) => ({ ...current, salary: event.target.value }))} error={errors.salary} />

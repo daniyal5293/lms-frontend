@@ -43,7 +43,7 @@ export function Modal({
         aria-modal="true"
         aria-labelledby="modal-title"
         className={cn(
-          "relative z-10 max-h-[80vh] w-full max-w-lg overflow-hidden rounded-xl border border-black/10 theme-bg-card shadow-xl",
+          "relative z-10 max-h-[80vh] w-full max-w-lg overflow-hidden rounded-xl border border-black/10 theme-bg-surface shadow-xl",
           className,
         )}
       >

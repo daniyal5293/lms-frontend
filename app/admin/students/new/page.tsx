@@ -10,6 +10,7 @@ import { Card } from "@/src/components/ui/Card";
 import { Input } from "@/src/components/ui/Input";
 import { PageHeader } from "@/src/components/ui/PageHeader";
 import { Select } from "@/src/components/ui/Select";
+import { DepartmentSelect } from "@/src/components/ui/DepartmentSelect";
 import { ApiError } from "@/src/lib/api/client";
 import { listSections } from "@/src/lib/api/sections.api";
 import { createStudent } from "@/src/lib/api/students.api";
@@ -23,6 +24,7 @@ const initialState = {
   enrollmentDate: "",
   cnic: "",
   sectionId: "",
+  departmentId: "",
 };
 
 export default function NewStudentPage() {
@@ -50,7 +52,7 @@ export default function NewStudentPage() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!form.fullName.trim() || !form.email.trim() || !form.phoneNumber.trim() || !form.dateOfBirth || !form.enrollmentDate || !form.cnic.trim() || !form.sectionId) {
+    if (!form.fullName.trim() || !form.email.trim() || !form.phoneNumber.trim() || !form.dateOfBirth || !form.enrollmentDate || !form.cnic.trim() || !form.sectionId || !form.departmentId) {
       notify("error", "Validation failed", "Complete all student fields before submitting.");
       return;
     }
@@ -69,6 +71,7 @@ export default function NewStudentPage() {
         enrollmentDate: form.enrollmentDate,
         cnic: form.cnic.trim(),
         sectionId: form.sectionId,
+        departmentId: form.departmentId,
       });
       notify("success", "Student created", "The student account was created successfully.");
       router.push("/admin/students");
@@ -93,6 +96,7 @@ export default function NewStudentPage() {
               <Input label="CNIC" value={form.cnic} onChange={(event) => setForm((current) => ({ ...current, cnic: event.target.value }))} />
               <Input label="Date of birth" type="date" value={form.dateOfBirth} onChange={(event) => setForm((current) => ({ ...current, dateOfBirth: event.target.value }))} />
               <Input label="Enrollment date" type="date" value={form.enrollmentDate} onChange={(event) => setForm((current) => ({ ...current, enrollmentDate: event.target.value }))} />
+              <DepartmentSelect value={form.departmentId} onChange={(departmentId) => setForm((current) => ({ ...current, departmentId }))} />
               <Select label="Section" value={form.sectionId} onChange={(event) => setForm((current) => ({ ...current, sectionId: event.target.value }))} disabled={loadingSections}>
                 <option value="">{loadingSections ? "Loading sections..." : "Select a section"}</option>
                 {sections.map((section) => {

@@ -46,8 +46,11 @@ export type Teacher = {
   fullname?: string;
   Email?: string;
   email?: string;
+  /** Department name, for display. */
   Department?: string | null;
   department?: string | null;
+  DepartmentId?: string | null;
+  departmentId?: string | null;
   Salary?: number | string | null;
   salary?: number | string | null;
   CNIC?: string | null;
@@ -233,6 +236,11 @@ export type Student = {
   cnic?: string;
   SectionId?: string;
   sectionId?: string;
+  DepartmentId?: string | null;
+  departmentId?: string | null;
+  /** Department name, for display. */
+  Department?: string | null;
+  department?: string | null;
   StudentEnrollmentId?: string;
   studentEnrollmentId?: string;
   EnrollmentId?: string;

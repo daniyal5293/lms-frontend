@@ -9,11 +9,38 @@ import { Card } from "@/src/components/ui/Card";
 import { Input } from "@/src/components/ui/Input";
 import { PageHeader } from "@/src/components/ui/PageHeader";
 import { Badge } from "@/src/components/ui/Badge";
+import { Modal } from "@/src/components/ui/Modal";
 import { useNotifications } from "@/src/components/providers/NotificationProvider";
 import { listTeachers, deleteTeacher, restoreTeacher, promoteTeacher, demoteTeacher } from "@/src/lib/api/teachers.api";
 import { ApiError } from "@/src/lib/api/client";
 import type { Teacher } from "@/src/lib/types";
-import { formatDate } from "@/src/lib/utils";
+import { formatDate, shortProgramName } from "@/src/lib/utils";
+
+const teacherName = (teacher: Teacher) => teacher.Fullname ?? teacher.FullName ?? teacher.fullname ?? "Unknown";
+const isHod = (teacher: Teacher) => (teacher.Role ?? teacher.role ?? "").toUpperCase() === "HOD";
+
+type CourseAssignments = { course: string; classes: Array<{ level: string; sections: string[] }> };
+
+/** Groups "Physics · XI - Pre-Engineering (A)" entries into course -> class -> short section names. */
+function groupAssignments(teacher: Teacher): CourseAssignments[] {
+  const byCourse = new Map<string, Map<string, string[]>>();
+  (teacher.Assignments ?? teacher.assignments ?? []).forEach((entry) => {
+    const [course, section = ""] = entry.split(" · ");
+    const separator = section.indexOf(" - ");
+    const level = separator === -1 ? "" : section.slice(0, separator);
+    const name = shortProgramName(separator === -1 ? section : section.slice(separator + 3));
+    const classes = byCourse.get(course) ?? new Map<string, string[]>();
+    classes.set(level, [...(classes.get(level) ?? []), name]);
+    byCourse.set(course, classes);
+  });
+
+  return Array.from(byCourse.entries()).map(([course, classes]) => ({
+    course,
+    classes: Array.from(classes.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([level, sections]) => ({ level, sections: [...sections].sort() })),
+  }));
+}
 
 export default function AdminTeachersPage() {
   const router = useRouter();
@@ -21,6 +48,8 @@ export default function AdminTeachersPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [detailsTeacher, setDetailsTeacher] = useState<Teacher | null>(null);
+  const detailGroups = useMemo(() => (detailsTeacher ? groupAssignments(detailsTeacher) : []), [detailsTeacher]);
 
   const loadTeachers = useCallback(async () => {
     setLoading(true);
@@ -161,7 +190,6 @@ export default function AdminTeachersPage() {
                   <th className="px-3 py-3 font-medium theme-text-muted">Name</th>
                   <th className="px-3 py-3 font-medium theme-text-muted">Email</th>
                   <th className="px-3 py-3 font-medium theme-text-muted">Courses</th>
-                  <th className="px-3 py-3 font-medium theme-text-muted">Sections</th>
                   <th className="px-3 py-3 font-medium theme-text-muted">Department</th>
                   <th className="px-3 py-3 font-medium theme-text-muted">Status</th>
                   <th className="px-3 py-3 font-medium theme-text-muted">Hire</th>
@@ -175,31 +203,25 @@ export default function AdminTeachersPage() {
                   return (
                   <tr key={teacher.Id ?? teacher.id ?? teacher.teacher_id ?? `${teacher.Email}-${teacher.Fullname ?? teacher.FullName ?? teacher.fullname}`} className="border-b border-black/5">
                     <td className="px-3 py-3">
-                      <div className="font-medium">{teacher.Fullname ?? teacher.FullName ?? teacher.fullname ?? "Unknown"}</div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-medium">{teacherName(teacher)}</span>
+                        {isHod(teacher) ? <Badge tone="primary">HOD</Badge> : null}
+                      </div>
                     </td>
                     <td className="px-3 py-3 theme-text-soft">{teacher.Email ?? teacher.email ?? "Not provided"}</td>
                     <td className="px-3 py-3 theme-text-soft">
                       {courses.length === 0 ? (
                         <span className="theme-text-muted">None</span>
                       ) : (
-                        <div className="flex max-w-xs flex-wrap gap-1">
-                          {courses.map((course) => (
-                            <Badge key={course} tone="info">{course}</Badge>
-                          ))}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-3 py-3 theme-text-soft">
-                      {sections.length === 0 ? (
-                        <span className="theme-text-muted">None</span>
-                      ) : (
-                        <div className="max-w-sm space-y-0.5 text-xs">
-                          {sections.slice(0, 4).map((section) => (
-                            <div key={section}>{section}</div>
-                          ))}
-                          {sections.length > 4 ? (
-                            <div className="theme-text-muted">+{sections.length - 4} more</div>
-                          ) : null}
+                        <div className="max-w-xs space-y-1.5">
+                          <div className="flex flex-wrap gap-1">
+                            {courses.map((course) => (
+                              <Badge key={course} tone="info">{course}</Badge>
+                            ))}
+                          </div>
+                          <button type="button" onClick={() => setDetailsTeacher(teacher)} className="text-xs theme-text-primary underline underline-offset-4">
+                            View details ({sections.length} {sections.length === 1 ? "section" : "sections"})
+                          </button>
                         </div>
                       )}
                     </td>
@@ -221,13 +243,13 @@ export default function AdminTeachersPage() {
                         <button type="button" onClick={() => handleDelete(teacher)} className="text-red-300 underline underline-offset-4">
                           Delete
                         </button>
-                        {(teacher.Role ?? teacher.role ?? "").toUpperCase() === "HOD" ? (
+                        {isHod(teacher) ? (
                           <button type="button" onClick={() => handleDemote(teacher)} className="text-amber-300 underline underline-offset-4">
                             Demote
                           </button>
                         ) : (teacher.Active ?? teacher.IsActive ?? teacher.isActive) ? (
                           <button type="button" onClick={() => handlePromote(teacher)} className="theme-text-secondary underline underline-offset-4">
-                            Promote
+                            Promote to HOD
                           </button>
                         ) : (
                           <button type="button" onClick={() => handleRestore(teacher)} className="text-emerald-300 underline underline-offset-4">
@@ -244,6 +266,46 @@ export default function AdminTeachersPage() {
           </div>
         )}
       </Card>
+
+      <Modal
+        open={detailsTeacher !== null}
+        title={detailsTeacher ? teacherName(detailsTeacher) : ""}
+        description={
+          detailsTeacher
+            ? `${(detailsTeacher.AssignedCourses ?? []).length} courses · ${(detailsTeacher.AssignedSections ?? []).length} sections`
+            : undefined
+        }
+        onClose={() => setDetailsTeacher(null)}
+      >
+        {detailGroups.length === 0 ? (
+          <p className="text-sm theme-text-muted">No active course or section assignments.</p>
+        ) : (
+          <div className="space-y-4">
+            {detailGroups.map((group) => (
+              <div key={group.course} className="rounded-xl border border-black/10 p-4">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h3 className="font-semibold theme-text">{group.course}</h3>
+                  <span className="text-xs theme-text-muted">
+                    {group.classes.reduce((total, item) => total + item.sections.length, 0)} sections
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {group.classes.map((item) => (
+                    <div key={item.level} className="flex items-start gap-3">
+                      <span className="w-10 shrink-0 pt-1 text-xs font-semibold theme-text-muted">{item.level || "—"}</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {item.sections.map((section) => (
+                          <Badge key={section}>{section}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Modal>
       </AppShell>
     </ProtectedRoute>
   );
