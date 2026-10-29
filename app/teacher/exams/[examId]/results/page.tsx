@@ -285,7 +285,7 @@ export default function UploadExamResultsPage() {
 
         <Card>
           {/* EXAM INFORMATION */}
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-black/10 pb-5">
             <div>
               <h2 className="text-lg font-semibold">
                 Student Results
@@ -293,7 +293,7 @@ export default function UploadExamResultsPage() {
 
               <p className="mt-1 text-sm theme-text-muted">
                 Total marks:{" "}
-                <span className="text-white">
+                <span className="theme-text">
                   {totalMarks}
                 </span>
               </p>
@@ -324,7 +324,7 @@ export default function UploadExamResultsPage() {
               {/* STUDENT TABLE */}
               <div className="overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
-                  <thead className="border-b border-white/10">
+                  <thead className="border-b border-black/10">
                     <tr>
                       <th className="px-4 py-3 theme-text-muted">
                         Student
@@ -456,7 +456,7 @@ export default function UploadExamResultsPage() {
               </div>
 
               {/* SUBMIT */}
-              <div className="flex justify-end gap-3 border-t border-white/10 pt-5">
+              <div className="flex justify-end gap-3 border-t border-black/10 pt-5">
                 <Button
                   type="button"
                   variant="ghost"

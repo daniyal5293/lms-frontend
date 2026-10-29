@@ -241,6 +241,25 @@ export type Student = {
   /** Department name, for display. */
   Department?: string | null;
   department?: string | null;
+  /** Unique numeric code, up to 10 digits (e.g. "2001061"). */
+  StudentCode?: string;
+  studentCode?: string;
+  CohortId?: string | null;
+  cohortId?: string | null;
+  Cohort?: string | null;
+  cohort?: string | null;
+  CampusId?: string | null;
+  campusId?: string | null;
+  Campus?: string | null;
+  campus?: string | null;
+  MajorSubject?: string | null;
+  majorSubject?: string | null;
+  Gender?: string | null;
+  gender?: string | null;
+  FatherName?: string | null;
+  fatherName?: string | null;
+  IsActive?: boolean;
+  isActive?: boolean;
   StudentEnrollmentId?: string;
   studentEnrollmentId?: string;
   EnrollmentId?: string;

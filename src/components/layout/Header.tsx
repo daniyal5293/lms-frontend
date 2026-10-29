@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -20,7 +21,7 @@ export function Header() {
   const currentUser = user;
   const role = currentUser?.Roles?.[0] ?? "Student";
   const mobileNavigationByRole: Record<Role, { label: string; href: string }[]> = {
-    Admin: [{ label: "Dashboard", href: "/dashboard" }, { label: "Teachers", href: "/admin/teachers" }, { label: "Students", href: "/admin/students" }, { label: "Courses", href: "/admin/courses" }, { label: "Sections", href: "/admin/sections" }, { label: "Departments", href: "/admin/departments" }, { label: "Roles", href: "/admin/roles" }, { label: "Notifications", href: "/notifications" }],
+    Admin: [{ label: "Dashboard", href: "/dashboard" }, { label: "Teachers", href: "/admin/teachers" }, { label: "Students", href: "/admin/students" }, { label: "Courses", href: "/admin/courses" }, { label: "Sections", href: "/admin/sections" }, { label: "Departments", href: "/admin/departments" }, { label: "Cohorts", href: "/admin/cohorts" }, { label: "Campuses", href: "/admin/campuses" }, { label: "Roles", href: "/admin/roles" }, { label: "Notifications", href: "/notifications" }],
     Teacher: [{ label: "Dashboard", href: "/dashboard" }, { label: "Exams", href: "/teacher" }, { label: "Attendance", href: "/teacher/attendance" }, { label: "Students", href: "/teacher/students" }, { label: "Notifications", href: "/notifications" }],
     Student: [{ label: "Dashboard", href: "/dashboard" }, { label: "Student Area", href: "/student" }, { label: "Notifications", href: "/notifications" }],
     HOD: [{ label: "Dashboard", href: "/dashboard" }, { label: "HOD Area", href: "/hod" }, { label: "Fee Management", href: "/hod/fee-management" }, { label: "Notifications", href: "/notifications" }],
@@ -50,8 +51,9 @@ export function Header() {
           >
             Menu
           </button>
-          <Link href="/dashboard" className="text-base font-semibold theme-text">
-            LMS Portal
+          <Link href="/dashboard" className="flex items-center gap-2 text-base font-semibold theme-text">
+            <Image src="/tcf-mark.png" alt="" width={26} height={20} />
+            TCF Campus
           </Link>
         </div>
 

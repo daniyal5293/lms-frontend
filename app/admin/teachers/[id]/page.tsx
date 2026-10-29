@@ -52,7 +52,7 @@ export default function TeacherDetailPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">Profile</h2>
+            <h2 className="text-lg font-semibold theme-text">Profile</h2>
             <div className="flex gap-2">
               {isHod ? <Badge tone="primary">HOD</Badge> : null}
               <Badge tone={teacher.Active ?? teacher.IsActive ? "success" : "warning"}>
@@ -61,34 +61,34 @@ export default function TeacherDetailPage() {
             </div>
           </div>
           <dl className="space-y-3 text-sm">
-            <div className="flex justify-between gap-4 border-b border-white/10 pb-2"><dt className="theme-text-muted">Full name</dt><dd className="text-white">{teacher.Fullname ?? teacher.FullName ?? "Not provided"}</dd></div>
-            <div className="flex justify-between gap-4 border-b border-white/10 pb-2"><dt className="theme-text-muted">Email</dt><dd className="text-white">{teacher.Email ?? teacher.email ?? "Not provided"}</dd></div>
-            <div className="flex justify-between gap-4 border-b border-white/10 pb-2"><dt className="theme-text-muted">Department</dt><dd className="text-white">{teacher.Department ?? teacher.department ?? "Not provided"}</dd></div>
-            <div className="flex justify-between gap-4 border-b border-white/10 pb-2"><dt className="theme-text-muted">Salary</dt><dd className="text-white">{formatCurrency(teacher.Salary ?? teacher.salary)}</dd></div>
-            <div className="flex justify-between gap-4 border-b border-white/10 pb-2"><dt className="theme-text-muted">CNIC</dt><dd className="text-white">{teacher.CNIC ?? teacher.cnic ?? "Not provided"}</dd></div>
-            <div className="flex justify-between gap-4 border-b border-white/10 pb-2"><dt className="theme-text-muted">Date of birth</dt><dd className="text-white">{formatDate(teacher.DateOfBirth ?? teacher.dateOfBirth)}</dd></div>
-            <div className="flex justify-between gap-4 border-b border-white/10 pb-2"><dt className="theme-text-muted">Hire date</dt><dd className="text-white">{formatDate(teacher.HireDate ?? teacher.hireDate)}</dd></div>
+            <div className="flex justify-between gap-4 border-b border-black/10 pb-2"><dt className="theme-text-muted">Full name</dt><dd className="theme-text">{teacher.Fullname ?? teacher.FullName ?? "Not provided"}</dd></div>
+            <div className="flex justify-between gap-4 border-b border-black/10 pb-2"><dt className="theme-text-muted">Email</dt><dd className="theme-text">{teacher.Email ?? teacher.email ?? "Not provided"}</dd></div>
+            <div className="flex justify-between gap-4 border-b border-black/10 pb-2"><dt className="theme-text-muted">Department</dt><dd className="theme-text">{teacher.Department ?? teacher.department ?? "Not provided"}</dd></div>
+            <div className="flex justify-between gap-4 border-b border-black/10 pb-2"><dt className="theme-text-muted">Salary</dt><dd className="theme-text">{formatCurrency(teacher.Salary ?? teacher.salary)}</dd></div>
+            <div className="flex justify-between gap-4 border-b border-black/10 pb-2"><dt className="theme-text-muted">CNIC</dt><dd className="theme-text">{teacher.CNIC ?? teacher.cnic ?? "Not provided"}</dd></div>
+            <div className="flex justify-between gap-4 border-b border-black/10 pb-2"><dt className="theme-text-muted">Date of birth</dt><dd className="theme-text">{formatDate(teacher.DateOfBirth ?? teacher.dateOfBirth)}</dd></div>
+            <div className="flex justify-between gap-4 border-b border-black/10 pb-2"><dt className="theme-text-muted">Hire date</dt><dd className="theme-text">{formatDate(teacher.HireDate ?? teacher.hireDate)}</dd></div>
           </dl>
         </Card>
 
         <Card>
-          <h2 className="mb-4 text-lg font-semibold text-white">Professional details</h2>
+          <h2 className="mb-4 text-lg font-semibold theme-text">Professional details</h2>
           <dl className="space-y-3 text-sm">
-            <div className="flex justify-between gap-4 border-b border-white/10 pb-2"><dt className="theme-text-muted">Identification</dt><dd className="text-white">{teacher.IdentificationNumber ?? teacher.identificationNumber ?? "Not provided"}</dd></div>
-            <div className="flex justify-between gap-4 border-b border-white/10 pb-2"><dt className="theme-text-muted">Qualification</dt><dd className="text-white">{teacher.Qualification ?? teacher.qualification ?? "Not provided"}</dd></div>
-            <div className="flex justify-between gap-4 border-b border-white/10 pb-2"><dt className="theme-text-muted">Address</dt><dd className="text-white">{teacher.Address ?? teacher.address ?? "Not provided"}</dd></div>
-            <div className="flex justify-between gap-4 border-b border-white/10 pb-2"><dt className="theme-text-muted">Role</dt><dd className="text-white">{isHod ? <Badge tone="primary">HOD</Badge> : teacher.Role ?? "Teacher"}</dd></div>
+            <div className="flex justify-between gap-4 border-b border-black/10 pb-2"><dt className="theme-text-muted">Identification</dt><dd className="theme-text">{teacher.IdentificationNumber ?? teacher.identificationNumber ?? "Not provided"}</dd></div>
+            <div className="flex justify-between gap-4 border-b border-black/10 pb-2"><dt className="theme-text-muted">Qualification</dt><dd className="theme-text">{teacher.Qualification ?? teacher.qualification ?? "Not provided"}</dd></div>
+            <div className="flex justify-between gap-4 border-b border-black/10 pb-2"><dt className="theme-text-muted">Address</dt><dd className="theme-text">{teacher.Address ?? teacher.address ?? "Not provided"}</dd></div>
+            <div className="flex justify-between gap-4 border-b border-black/10 pb-2"><dt className="theme-text-muted">Role</dt><dd className="theme-text">{isHod ? <Badge tone="primary">HOD</Badge> : teacher.Role ?? "Teacher"}</dd></div>
           </dl>
         </Card>
 
         <Card className="lg:col-span-2">
-          <h2 className="mb-4 text-lg font-semibold text-white">Assigned courses &amp; sections</h2>
+          <h2 className="mb-4 text-lg font-semibold theme-text">Assigned courses &amp; sections</h2>
           {(teacher.Assignments ?? teacher.assignments ?? []).length === 0 ? (
             <p className="text-sm theme-text-muted">No active section or course assignments.</p>
           ) : (
             <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {(teacher.Assignments ?? teacher.assignments ?? []).map((assignment) => (
-                <li key={assignment} className="rounded-md border border-white/10 px-3 py-2 text-sm text-white">
+                <li key={assignment} className="rounded-md border border-black/10 px-3 py-2 text-sm theme-text">
                   {assignment}
                 </li>
               ))}

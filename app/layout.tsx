@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "College LMS",
-  description: "Professional college learning management system frontend",
+  title: { default: "TCF Campus", template: "%s | TCF Campus" },
+  description: "TCF Campus — learning management for The Citizens Foundation campuses",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

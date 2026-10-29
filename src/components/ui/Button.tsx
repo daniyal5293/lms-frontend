@@ -20,7 +20,7 @@ export function Button({
     primary: "theme-bg-primary theme-text-on-primary theme-hover-primary border theme-border-primary",
     secondary: "theme-bg-secondary theme-text-on-primary theme-hover-secondary border theme-border-secondary",
     ghost: "bg-transparent theme-text border border-black/10 hover:bg-black/5",
-    danger: "bg-red-600 theme-text border border-red-600 hover:bg-red-500",
+    danger: "bg-red-600 text-white border border-red-600 hover:bg-red-500",
   };
 
   return (

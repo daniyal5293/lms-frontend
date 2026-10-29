@@ -2,24 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * TCF Campus theme, taken from The Citizens Foundation logo: leaf green (#0B8A44) and black wordmark.
+ * --primary is a touch deeper than the logo green so small text and links on white keep >= 4.5:1 contrast.
+ */
 :root {
-  --page: #f5f7f4;
+  --brand: #0b8a44;
+  --page: #f3f8f4;
   --surface: #ffffff;
-  --input: #fbfcfa;
-  --foreground: #17352b;
-  --text-soft: #486257;
-  --muted: #708279;
-  --primary: #123f32;
-  --primary-hover: #0d3026;
-  --primary-soft: #e4eee9;
-  --primary-tint: #f1f6f3;
+  --input: #fbfdfb;
+  --foreground: #10271a;
+  --text-soft: #3d5747;
+  --muted: #687f71;
+  --primary: #0a7f3f;
+  --primary-hover: #086832;
+  --primary-soft: #e2f3e8;
+  --primary-tint: #f0f8f3;
+  --primary-ring: rgba(10, 127, 63, 0.18);
   --on-primary: #ffffff;
-  --secondary: #2f6654;
-  --secondary-hover: #245443;
-  --secondary-soft: #e9f1ee;
-  --secondary-muted: #a7c0b6;
-  --page-muted: #e9efeb;
-  --border: #dce6df;
+  --secondary: #0f5c34;
+  --secondary-hover: #0b4a29;
+  --secondary-soft: #e5f0e9;
+  --secondary-muted: #a6cbb3;
+  --page-muted: #e6f0e9;
+  --border: #d6e6db;
   --background: var(--page);
   --accent: var(--primary);
   --secondary-accent: var(--secondary);
@@ -47,7 +53,58 @@ textarea {
 }
 
 ::selection {
-  background: rgba(18, 63, 50, 0.2);
+  background: rgba(10, 127, 63, 0.2);
+}
+
+/* Consistent focus styling for every form control and button */
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-ring);
+  outline: none;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--primary);
+}
+
+/* Login page motion; kept subtle and switched off for users who prefer reduced motion */
+@keyframes tcf-fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes tcf-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(-3deg); }
+}
+
+@keyframes tcf-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(18px, -14px) scale(1.06); }
+}
+
+.tcf-fade-up { animation: tcf-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.tcf-delay-1 { animation-delay: 0.08s; }
+.tcf-delay-2 { animation-delay: 0.16s; }
+.tcf-delay-3 { animation-delay: 0.24s; }
+.tcf-float { animation: tcf-float 7s ease-in-out infinite; }
+.tcf-drift { animation: tcf-drift 14s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tcf-fade-up,
+  .tcf-float,
+  .tcf-drift {
+    animation: none;
+  }
 }
 
 .theme-bg-page { background-color: var(--page); }

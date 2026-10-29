@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useNotifications } from "@/src/components/providers/NotificationProvider";
+import { AuthShell } from "@/src/components/auth/AuthShell";
 import { Button } from "@/src/components/ui/Button";
 import { Input } from "@/src/components/ui/Input";
 import { ApiError } from "@/src/lib/api/client";
@@ -77,19 +78,13 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center theme-bg-page p-6">
-      <div className="w-full max-w-md rounded-3xl border border-black/10 theme-bg-surface p-6 shadow-xl shadow-black/20">
-        <div className="mb-6">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl theme-bg-primary text-xl font-bold theme-text">L</div>
-          <h1 className="text-3xl font-semibold theme-text">Reset your password</h1>
-          <p className="mt-2 text-sm theme-text-muted">
-            {codeSent ? "Enter the code from your email and choose a new password." : "Enter your email and we will send you a verification code."}
-          </p>
-        </div>
-
+    <AuthShell
+      title="Reset your password"
+      subtitle={codeSent ? "Enter the code from your email and choose a new password." : "Enter your email and we will send you a verification code."}
+    >
         {!codeSent ? (
           <form onSubmit={handleSendCode} className="space-y-5" noValidate>
-            <Input label="Email" name="email" type="email" autoComplete="email" value={form.email} onChange={(event) => updateField("email", event.target.value)} placeholder="name@college.edu" />
+            <Input label="Email" name="email" type="email" autoComplete="email" value={form.email} onChange={(event) => updateField("email", event.target.value)} placeholder="name@tcf.org.pk" />
             <Button type="submit" className="w-full" loading={submitting}>{submitting ? "Sending..." : "Send reset code"}</Button>
           </form>
         ) : (
@@ -101,11 +96,10 @@ export default function ForgotPasswordPage() {
           </form>
         )}
 
-        <Link href="/login" className="mt-5 block w-full text-center text-sm theme-text-primary transition hover:theme-text">
+        <Link href="/login" className="mt-5 block w-full text-center text-sm font-medium theme-text-primary transition hover:underline">
           Back to sign in
         </Link>
-      </div>
-    </div>
+    </AuthShell>
   );
 }
 

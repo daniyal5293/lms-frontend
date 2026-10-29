@@ -27,6 +27,15 @@ function normalizeStudent(student: Student): Student {
     SectionId: student.SectionId ?? student.sectionId,
     DepartmentId: student.DepartmentId ?? student.departmentId,
     Department: student.Department ?? student.department,
+    StudentCode: student.StudentCode ?? student.studentCode,
+    CohortId: student.CohortId ?? student.cohortId,
+    Cohort: student.Cohort ?? student.cohort,
+    CampusId: student.CampusId ?? student.campusId,
+    Campus: student.Campus ?? student.campus,
+    MajorSubject: student.MajorSubject ?? student.majorSubject,
+    Gender: student.Gender ?? student.gender,
+    FatherName: student.FatherName ?? student.fatherName,
+    IsActive: student.IsActive ?? student.isActive,
     Section: sectionLabel || rawSection || null,
   };
 }
@@ -48,11 +57,17 @@ export type CreateStudentPayload = {
   fullName: string;
   email: string;
   phoneNumber: string;
-  dateOfBirth: string;
+  dateOfBirth: string | null;
   enrollmentDate: string;
   cnic: string;
   sectionId: string;
   departmentId: string;
+  studentCode: string;
+  fatherName: string;
+  gender: string;
+  majorSubject: string;
+  cohortId: string;
+  campusId: string;
 };
 
 export async function createStudent(payload: CreateStudentPayload) {
@@ -84,6 +99,15 @@ export async function updateStudent(id: string, payload: CreateStudentPayload) {
     method: "PUT",
     body: JSON.stringify(departmentId ? payload : rest),
   });
+}
+
+/** Activates or deactivates a student; inactive students cannot sign in. */
+export async function setStudentStatus(id: string, isActive: boolean) {
+  const student = await apiFetch<Student>(`/api/student/${id}/status`, {
+    method: "PUT",
+    body: JSON.stringify({ isActive }),
+  });
+  return normalizeStudent(student);
 }
 
 export async function deleteStudent(id: string) {

@@ -61,6 +61,14 @@ export async function createExam(payload: CreateExamPayload) {
   });
 }
 
+/** Publishes (or unpublishes) an exam's results. Only the teacher of that course-section is allowed. */
+export async function publishExamResults(examId: string, isPublished: boolean) {
+  return apiFetch<{ examId: string; isPublished: boolean; message: string }>(`/api/exam/${examId}/publish`, {
+    method: "PUT",
+    body: JSON.stringify({ isPublished }),
+  });
+}
+
 export async function listExamsByTeacherId(teacherId: string) {
   const response = await apiFetch<TeacherExamsResponse>(
     `/api/exam/teacher/${encodeURIComponent(teacherId)}`

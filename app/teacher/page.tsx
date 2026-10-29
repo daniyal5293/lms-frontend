@@ -15,6 +15,7 @@ import { useNotifications } from "@/src/components/providers/NotificationProvide
 import {
   listExamsByTeacherId,
   listExamTypes,
+  publishExamResults,
   type Exam,
   type ExamType,
 } from "@/src/lib/api/exams.api";
@@ -308,6 +309,29 @@ export default function TeacherExamsPage() {
     [assignments]
   );
 
+  const [publishingId, setPublishingId] = useState("");
+
+  // Students only see marks once the exam is published; the server checks this teacher owns the exam
+  const handleTogglePublish = async (exam: Exam) => {
+    const examId = getExamId(exam);
+    if (!examId) return;
+    const next = !isExamPublished(exam);
+    if (next && !window.confirm(`Publish results for "${getReadableExamTitle(exam)}"? Students will be able to see their marks.`)) return;
+
+    setPublishingId(examId);
+    try {
+      await publishExamResults(examId, next);
+      setExams((current) =>
+        current.map((item) => (getExamId(item) === examId ? { ...item, IsPublished: next, isPublished: next } : item)),
+      );
+      notify("success", next ? "Results published" : "Results unpublished", next ? "Students can now see their marks." : "Marks are hidden from students again.");
+    } catch (error) {
+      notify("error", "Publishing failed", error instanceof ApiError ? error.message : "Unable to update the exam.");
+    } finally {
+      setPublishingId("");
+    }
+  };
+
   const handleUploadResult = (exam: Exam) => {
     const examId = getExamId(exam);
 
@@ -446,7 +470,7 @@ export default function TeacherExamsPage() {
                           className={[
                             "rounded-lg px-4 py-2 text-sm font-medium transition",
                             active
-                              ? "bg-white text-black"
+                              ? "theme-bg-primary theme-text-on-primary"
                               : "border border-black/10 theme-bg-page theme-text-muted hover:theme-text",
                           ].join(" ")}
                         >
@@ -492,7 +516,7 @@ export default function TeacherExamsPage() {
                                 "Date unavailable"}
                             </span>
 
-                            <span>â€¢</span>
+                            <span aria-hidden="true">·</span>
 
                             <span>
                               Total marks:{" "}
@@ -535,6 +559,15 @@ export default function TeacherExamsPage() {
                           }
                         >
                           Edit
+                        </Button>
+                        <Button
+                          variant={isExamPublished(exam) ? "ghost" : "primary"}
+                          loading={publishingId === getExamId(exam)}
+                          disabled={!isExamPublished(exam) && !uploadedExamIds.has(getExamId(exam))}
+                          title={!isExamPublished(exam) && !uploadedExamIds.has(getExamId(exam)) ? "Upload results before publishing" : undefined}
+                          onClick={() => void handleTogglePublish(exam)}
+                        >
+                          {isExamPublished(exam) ? "Unpublish" : "Publish Result"}
                         </Button>
                       </div>
                     </div>

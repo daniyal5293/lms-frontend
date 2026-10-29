@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/src/lib/utils";
@@ -17,6 +18,8 @@ const navigationByRole: Record<Role, { label: string; href: string }[]> = {
     { label: "Courses", href: "/admin/courses" },
     { label: "Sections", href: "/admin/sections" },
     { label: "Departments", href: "/admin/departments" },
+    { label: "Cohorts", href: "/admin/cohorts" },
+    { label: "Campuses", href: "/admin/campuses" },
     { label: "Roles", href: "/admin/roles" },
     { label: "Notifications", href: "/notifications" },
   ],
@@ -48,13 +51,15 @@ export function Sidebar({ userRole = "Student" }: SidebarProps) {
 
   return (
     <aside className="hidden min-h-screen w-60 border-r border-black/10 theme-bg-page p-4 lg:flex lg:flex-col">
-      <div className="mb-6 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl theme-bg-primary font-bold theme-text-on-primary">L</div>
-        <div>
-          <p className="text-xs uppercase tracking-widest theme-text-muted">College</p>
-          <h1 className="text-lg font-semibold theme-text">LMS Portal</h1>
-        </div>
-      </div>
+      <Link href="/dashboard" className="mb-6 flex items-center gap-3">
+        <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-black/5 theme-bg-surface shadow-sm">
+          <Image src="/tcf-mark.png" alt="" width={32} height={25} priority />
+        </span>
+        <span>
+          <span className="block text-[11px] uppercase tracking-widest theme-text-muted">The Citizens Foundation</span>
+          <span className="block text-lg font-semibold theme-text">TCF Campus</span>
+        </span>
+      </Link>
 
       <nav className="space-y-1.5">
         {items.map((item) => {

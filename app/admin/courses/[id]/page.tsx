@@ -46,10 +46,10 @@ export default function CourseDetailPage() {
 
       <Card>
         <dl className="space-y-4 text-sm">
-          <div className="flex justify-between gap-4 border-b border-white/10 pb-3"><dt className="theme-text-muted">Course name</dt><dd className="text-white">{course.Name}</dd></div>
-          <div className="flex justify-between gap-4 border-b border-white/10 pb-3"><dt className="theme-text-muted">Course code</dt><dd className="text-white">{course.Code || "Not provided"}</dd></div>
-          <div className="flex justify-between gap-4 border-b border-white/10 pb-3"><dt className="theme-text-muted">Credits</dt><dd className="text-white">{course.Credits}</dd></div>
-          <div className="flex justify-between gap-4 border-b border-white/10 pb-3"><dt className="theme-text-muted">Description</dt><dd className="text-white">{course.Description ?? "Not provided"}</dd></div>
+          <div className="flex justify-between gap-4 border-b border-black/10 pb-3"><dt className="theme-text-muted">Course name</dt><dd className="theme-text">{course.Name}</dd></div>
+          <div className="flex justify-between gap-4 border-b border-black/10 pb-3"><dt className="theme-text-muted">Course code</dt><dd className="theme-text">{course.Code || "Not provided"}</dd></div>
+          <div className="flex justify-between gap-4 border-b border-black/10 pb-3"><dt className="theme-text-muted">Credits</dt><dd className="theme-text">{course.Credits}</dd></div>
+          <div className="flex justify-between gap-4 border-b border-black/10 pb-3"><dt className="theme-text-muted">Description</dt><dd className="theme-text">{course.Description ?? "Not provided"}</dd></div>
         </dl>
       </Card>
     </AppShell>

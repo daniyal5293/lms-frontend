@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "@/src/components/providers/AuthProvider";
 import { useNotifications } from "@/src/components/providers/NotificationProvider";
+import { AuthShell } from "@/src/components/auth/AuthShell";
 import { Button } from "@/src/components/ui/Button";
 import { Input } from "@/src/components/ui/Input";
 import { loginUser } from "@/src/lib/api/auth.api";
@@ -61,14 +62,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center theme-bg-page p-6">
-      <div className="w-full max-w-md rounded-3xl border border-black/10 theme-bg-surface p-6 shadow-xl shadow-black/20">
-        <div className="mb-6">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl theme-bg-primary text-xl font-bold theme-text">L</div>
-          <h1 className="text-3xl font-semibold theme-text">Welcome back</h1>
-          <p className="mt-2 text-sm theme-text-muted">Sign in to continue to your college LMS dashboard.</p>
-        </div>
-
+    <AuthShell title="Welcome back" subtitle="Sign in to continue to your TCF Campus dashboard.">
         <form onSubmit={onSubmit} className="space-y-5" noValidate>
           <Input
             label="Email"
@@ -78,7 +72,7 @@ export default function LoginPage() {
             value={form.email}
             onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
             error={errors.email}
-            placeholder="name@college.edu"
+            placeholder="name@tcf.org.pk"
           />
 
           <Input
@@ -99,13 +93,11 @@ export default function LoginPage() {
 
         <Link
           href="/forgot-password"
-          className="mt-5 w-full text-center text-sm theme-text-primary transition hover:theme-text"
+          className="mt-5 block w-full text-center text-sm font-medium theme-text-primary transition hover:underline"
         >
           Forgot your password?
         </Link>
-
-      </div>
-    </div>
+    </AuthShell>
   );
 }
 
