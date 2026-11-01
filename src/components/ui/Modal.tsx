@@ -47,18 +47,18 @@ export function Modal({
           className,
         )}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-black/10 px-5 py-4">
+        <div className="flex items-start justify-between gap-4 border-b border-black/10 px-4 py-2.5">
           <div>
-            <h2 id="modal-title" className="text-lg font-semibold theme-text">
+            <h2 id="modal-title" className="text-base font-semibold theme-text">
               {title}
             </h2>
-            {description ? <p className="mt-1 text-sm theme-text-muted">{description}</p> : null}
+            {description ? <p className="mt-0.5 text-xs theme-text-muted">{description}</p> : null}
           </div>
           <Button type="button" variant="ghost" onClick={onClose}>
             Close
           </Button>
         </div>
-        <div className="max-h-[60vh] overflow-y-auto px-5 py-4">{children}</div>
+        <div className="max-h-[70vh] overflow-y-auto px-4 py-3">{children}</div>
       </div>
     </div>
   );

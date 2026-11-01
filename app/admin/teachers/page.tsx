@@ -163,7 +163,7 @@ export default function AdminTeachersPage() {
         }
       />
 
-      <Card className="mb-6">
+      <Card className="mb-3">
         <div className="max-w-md">
           <Input
             label="Search"
@@ -187,13 +187,13 @@ export default function AdminTeachersPage() {
             <table className="min-w-full text-left text-sm theme-text">
               <thead className="border-b border-black/10">
                 <tr>
-                  <th className="px-3 py-3 font-medium theme-text-muted">Name</th>
-                  <th className="px-3 py-3 font-medium theme-text-muted">Email</th>
-                  <th className="px-3 py-3 font-medium theme-text-muted">Courses</th>
-                  <th className="px-3 py-3 font-medium theme-text-muted">Department</th>
-                  <th className="px-3 py-3 font-medium theme-text-muted">Status</th>
-                  <th className="px-3 py-3 font-medium theme-text-muted">Hire</th>
-                  <th className="px-3 py-3 font-medium theme-text-muted">Actions</th>
+                  <th className="px-2.5 py-1.5 font-medium theme-text-muted">Name</th>
+                  <th className="px-2.5 py-1.5 font-medium theme-text-muted">Email</th>
+                  <th className="px-2.5 py-1.5 font-medium theme-text-muted">Courses</th>
+                  <th className="px-2.5 py-1.5 font-medium theme-text-muted">Department</th>
+                  <th className="px-2.5 py-1.5 font-medium theme-text-muted">Status</th>
+                  <th className="px-2.5 py-1.5 font-medium theme-text-muted">Hire</th>
+                  <th className="px-2.5 py-1.5 font-medium theme-text-muted">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -202,14 +202,14 @@ export default function AdminTeachersPage() {
                   const sections = teacher.AssignedSections ?? teacher.assignedSections ?? [];
                   return (
                   <tr key={teacher.Id ?? teacher.id ?? teacher.teacher_id ?? `${teacher.Email}-${teacher.Fullname ?? teacher.FullName ?? teacher.fullname}`} className="border-b border-black/5">
-                    <td className="px-3 py-3">
+                    <td className="px-2.5 py-1.5">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-medium">{teacherName(teacher)}</span>
                         {isHod(teacher) ? <Badge tone="primary">HOD</Badge> : null}
                       </div>
                     </td>
-                    <td className="px-3 py-3 theme-text-soft">{teacher.Email ?? teacher.email ?? "Not provided"}</td>
-                    <td className="px-3 py-3 theme-text-soft">
+                    <td className="px-2.5 py-1.5 theme-text-soft">{teacher.Email ?? teacher.email ?? "Not provided"}</td>
+                    <td className="px-2.5 py-1.5 theme-text-soft">
                       {courses.length === 0 ? (
                         <span className="theme-text-muted">None</span>
                       ) : (
@@ -225,14 +225,14 @@ export default function AdminTeachersPage() {
                         </div>
                       )}
                     </td>
-                    <td className="px-3 py-3 theme-text-soft">{teacher.Department ?? teacher.department ?? "Not provided"}</td>
-                    <td className="px-3 py-3">
+                    <td className="px-2.5 py-1.5 theme-text-soft">{teacher.Department ?? teacher.department ?? "Not provided"}</td>
+                    <td className="px-2.5 py-1.5">
                       <Badge tone={teacher.Active ?? teacher.IsActive ?? teacher.isActive ? "success" : "warning"}>
                         {teacher.Active ?? teacher.IsActive ?? teacher.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </td>
-                    <td className="px-3 py-3 theme-text-soft">{formatDate(teacher.HireDate ?? undefined)}</td>
-                    <td className="px-3 py-3">
+                    <td className="px-2.5 py-1.5 theme-text-soft">{formatDate(teacher.HireDate ?? undefined)}</td>
+                    <td className="px-2.5 py-1.5">
                       <div className="flex flex-wrap gap-2">
                           <button type="button" onClick={() => router.push(`/admin/teachers/${teacher.Id ?? teacher.id ?? teacher.teacher_id}`)} className="theme-text-primary underline underline-offset-4">
                           View
@@ -240,11 +240,11 @@ export default function AdminTeachersPage() {
                           <button type="button" onClick={() => router.push(`/admin/teachers/${teacher.Id ?? teacher.id ?? teacher.teacher_id}/edit`)} className="theme-text-soft underline underline-offset-4">
                           Edit
                         </button>
-                        <button type="button" onClick={() => handleDelete(teacher)} className="text-red-300 underline underline-offset-4">
+                        <button type="button" onClick={() => handleDelete(teacher)} className="text-red-700 underline underline-offset-4">
                           Delete
                         </button>
                         {isHod(teacher) ? (
-                          <button type="button" onClick={() => handleDemote(teacher)} className="text-amber-300 underline underline-offset-4">
+                          <button type="button" onClick={() => handleDemote(teacher)} className="text-amber-800 underline underline-offset-4">
                             Demote
                           </button>
                         ) : (teacher.Active ?? teacher.IsActive ?? teacher.isActive) ? (
@@ -252,7 +252,7 @@ export default function AdminTeachersPage() {
                             Promote to HOD
                           </button>
                         ) : (
-                          <button type="button" onClick={() => handleRestore(teacher)} className="text-emerald-300 underline underline-offset-4">
+                          <button type="button" onClick={() => handleRestore(teacher)} className="text-emerald-700 underline underline-offset-4">
                             Restore
                           </button>
                         )}
@@ -280,9 +280,9 @@ export default function AdminTeachersPage() {
         {detailGroups.length === 0 ? (
           <p className="text-sm theme-text-muted">No active course or section assignments.</p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-2.5">
             {detailGroups.map((group) => (
-              <div key={group.course} className="rounded-xl border border-black/10 p-4">
+              <div key={group.course} className="rounded-lg border border-black/10 p-3">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <h3 className="font-semibold theme-text">{group.course}</h3>
                   <span className="text-xs theme-text-muted">

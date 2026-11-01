@@ -205,11 +205,11 @@ export default function NewExamPage() {
 
         <Card className="max-w-2xl">
           <form
-            className="space-y-6"
+            className="space-y-3"
             onSubmit={submit}
             noValidate
           >
-            <div className="grid gap-5 md:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-2">
               <Input
                 label="Title"
                 value={form.Title}
@@ -269,7 +269,7 @@ export default function NewExamPage() {
               />
 
               {fromAssignmentCard ? (
-                <div className="rounded-xl border border-black/10 theme-bg-page px-3 py-2.5 text-sm theme-text">
+                <div className="rounded-lg border border-black/10 theme-bg-page px-3 py-2.5 text-sm theme-text">
                   <span className="mb-1 block theme-text-muted">
                     Assigned course and section
                   </span>

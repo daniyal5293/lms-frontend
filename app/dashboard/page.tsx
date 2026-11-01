@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/src/components/providers/AuthProvider";
 import { useNotifications } from "@/src/components/providers/NotificationProvider";
 import { ProtectedRoute } from "@/src/components/auth/ProtectedRoute";
+import { AdminDashboard, HodDashboard, TeacherDashboard } from "@/src/components/dashboard/RoleDashboards";
 import { AppShell } from "@/src/components/layout/AppShell";
 import { Card } from "@/src/components/ui/Card";
 import { Badge } from "@/src/components/ui/Badge";
@@ -12,18 +13,16 @@ import { PageHeader } from "@/src/components/ui/PageHeader";
 import { listCourses } from "@/src/lib/api/courses.api";
 import { listSections } from "@/src/lib/api/sections.api";
 import { listTeachers } from "@/src/lib/api/teachers.api";
-import type { Course, Section, Teacher } from "@/src/lib/types";
+import type { Course, Section, Teacher, User } from "@/src/lib/types";
 import { getStoredSessionUser } from "@/src/lib/api/auth.api";
 
-export default function DashboardPage() {
-  const { user } = useAuth();
+/** Students and other roles keep the general overview. */
+function GeneralOverview({ currentUser }: { currentUser: User | null }) {
   const { notify } = useNotifications();
   const [sections, setSections] = useState<Section[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const currentUser = user ?? getStoredSessionUser();
 
   useEffect(() => {
     const load = async () => {
@@ -61,21 +60,14 @@ export default function DashboardPage() {
   );
 
   return (
-    <ProtectedRoute>
-      <AppShell>
-        <PageHeader
-          title="Dashboard"
-          description={`Welcome back, ${currentUser?.FullName ?? "User"}. Here is the current platform overview.`}
-          actions={<Button variant="secondary">Overview</Button>}
-        />
-
-      <div className="mb-6 grid gap-4 md:grid-cols-3">
+    <>
+      <div className="mb-3 grid gap-2.5 md:grid-cols-3">
         {stats.map((stat) => (
           <Card key={stat.label} className="theme-bg-surface">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm theme-text-muted">{stat.label}</p>
-                <h2 className="mt-2 text-3xl font-semibold theme-text">{loading ? "--" : stat.value}</h2>
+                <h2 className="mt-1 text-xl font-semibold theme-text">{loading ? "--" : stat.value}</h2>
               </div>
               <Badge tone={stat.tone as "default" | "info" | "success"}>{stat.label}</Badge>
             </div>
@@ -83,46 +75,60 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold theme-text">College overview</h3>
-            <Badge tone="info">Live</Badge>
-          </div>
-          <div className="space-y-4 text-sm theme-text-soft">
-            <div className="flex items-center justify-between rounded-xl border border-black/10 theme-bg-page p-3">
-              <span>Active user role</span>
-              <span className="font-medium theme-text">{currentUser?.Roles?.[0] ?? "Student"}</span>
-            </div>
-            <div className="flex items-center justify-between rounded-xl border border-black/10 theme-bg-page p-3">
-              <span>Course count</span>
-              <span className="font-medium theme-text">{courses.length}</span>
-            </div>
-            <div className="flex items-center justify-between rounded-xl border border-black/10 theme-bg-page p-3">
-              <span>Section count</span>
-              <span className="font-medium theme-text">{sections.length}</span>
-            </div>
-          </div>
-        </Card>
+      <Card>
+        <h3 className="mb-2 text-sm font-semibold theme-text">Permissions</h3>
+        <div className="flex flex-wrap gap-2">
+          {(currentUser?.Roles ?? ["Student"]).map((role) => (
+            <Badge key={role} tone={role === "Admin" ? "warning" : role === "Teacher" ? "info" : "success"}>
+              {role}
+            </Badge>
+          ))}
+        </div>
+      </Card>
+    </>
+  );
+}
 
-        <Card>
-          <h3 className="mb-4 text-lg font-semibold theme-text">Permissions</h3>
-          <div className="space-y-3">
-            {(currentUser?.Roles ?? ["Student"]).map((role) => (
-              <Badge key={role} tone={role === "Admin" ? "warning" : role === "Teacher" ? "info" : "success"}>
-                {role}
-              </Badge>
-            ))}
-          </div>
-        </Card>
-      </div>
+export default function DashboardPage() {
+  const { user } = useAuth();
+  const [view, setView] = useState<"department" | "classes">("department");
+
+  const currentUser = user ?? getStoredSessionUser();
+  const roles = currentUser?.Roles ?? [];
+  const isAdmin = roles.includes("Admin");
+  const isHod = roles.includes("HOD");
+  const isTeacher = roles.includes("Teacher");
+
+  return (
+    <ProtectedRoute>
+      <AppShell>
+        <PageHeader
+          title="Dashboard"
+          description={`Welcome back, ${currentUser?.FullName ?? "User"}.`}
+          actions={
+            !isAdmin && isHod && isTeacher ? (
+              <>
+                <Button variant={view === "department" ? "primary" : "ghost"} onClick={() => setView("department")}>
+                  Department
+                </Button>
+                <Button variant={view === "classes" ? "primary" : "ghost"} onClick={() => setView("classes")}>
+                  My classes
+                </Button>
+              </>
+            ) : null
+          }
+        />
+
+        {isAdmin ? (
+          <AdminDashboard />
+        ) : isHod && (view === "department" || !isTeacher) ? (
+          <HodDashboard />
+        ) : isHod || isTeacher ? (
+          <TeacherDashboard />
+        ) : (
+          <GeneralOverview currentUser={currentUser} />
+        )}
       </AppShell>
     </ProtectedRoute>
   );
 }
-
-
-
-
-
-

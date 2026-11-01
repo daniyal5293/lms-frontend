@@ -83,7 +83,7 @@ export function NotificationBell() {
                       <span className="flex items-start justify-between gap-2">
                         <span className={cn("truncate text-sm theme-text", !item.isRead && "font-semibold")}>{item.title}</span>
                         {item.priority !== "Normal" ? (
-                          <span className={cn("shrink-0 text-[10px] font-semibold uppercase", item.priority === "Urgent" ? "text-red-400" : "text-amber-400")}>
+                          <span className={cn("shrink-0 text-[10px] font-semibold uppercase", item.priority === "Urgent" ? "text-red-700" : "text-amber-800")}>
                             {item.priority}
                           </span>
                         ) : null}

@@ -285,7 +285,7 @@ export default function UploadExamResultsPage() {
 
         <Card>
           {/* EXAM INFORMATION */}
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-black/10 pb-5">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2.5 border-b border-black/10 pb-5">
             <div>
               <h2 className="text-lg font-semibold">
                 Student Results
@@ -319,30 +319,30 @@ export default function UploadExamResultsPage() {
           ) : (
             <form
               onSubmit={submitResults}
-              className="space-y-6"
+              className="space-y-3"
             >
               {/* STUDENT TABLE */}
               <div className="overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
                   <thead className="border-b border-black/10">
                     <tr>
-                      <th className="px-4 py-3 theme-text-muted">
+                      <th className="px-3 py-2 theme-text-muted">
                         Student
                       </th>
 
-                      <th className="px-4 py-3 theme-text-muted">
+                      <th className="px-3 py-2 theme-text-muted">
                         Total Marks
                       </th>
 
-                      <th className="px-4 py-3 theme-text-muted">
+                      <th className="px-3 py-2 theme-text-muted">
                         Obtain Marks
                       </th>
 
-                      <th className="px-4 py-3 theme-text-muted">
+                      <th className="px-3 py-2 theme-text-muted">
                         Absent
                       </th>
 
-                      <th className="px-4 py-3 theme-text-muted">
+                      <th className="px-3 py-2 theme-text-muted">
                         Remarks
                       </th>
                     </tr>
@@ -363,19 +363,19 @@ export default function UploadExamResultsPage() {
                           className="border-b border-white/5"
                         >
                           {/* STUDENT */}
-                          <td className="px-4 py-4 font-medium">
+                          <td className="px-3 py-2 font-medium">
                             {student.fullName}
                           </td>
 
                           {/* TOTAL MARKS */}
-                          <td className="px-4 py-4">
+                          <td className="px-3 py-2">
                             <span className="font-medium">
                               {totalMarks}
                             </span>
                           </td>
 
                           {/* OBTAIN MARKS */}
-                          <td className="px-4 py-4">
+                          <td className="px-3 py-2">
                             <Input
                               type="number"
                               min="0"
@@ -399,7 +399,7 @@ export default function UploadExamResultsPage() {
                           </td>
 
                           {/* ABSENT */}
-                          <td className="px-4 py-4">
+                          <td className="px-3 py-2">
                             <label className="flex cursor-pointer items-center gap-2">
                               <input
                                 type="checkbox"
@@ -431,7 +431,7 @@ export default function UploadExamResultsPage() {
                           </td>
 
                           {/* REMARKS */}
-                          <td className="px-4 py-4">
+                          <td className="px-3 py-2">
                             <Input
                               value={result.remarks}
                               onChange={(event) =>

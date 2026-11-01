@@ -71,7 +71,7 @@ export default function AdminSectionsPage() {
         actions={<Button variant="primary" onClick={() => router.push("/admin/sections/new")}>Create Section</Button>}
       />
 
-      <Card className="mb-6">
+      <Card className="mb-3">
         <div className="max-w-md">
           <Input
             label="Search"
@@ -93,11 +93,11 @@ export default function AdminSectionsPage() {
             <table className="min-w-full text-left text-sm theme-text">
               <thead className="border-b border-black/10">
                 <tr>
-                  <th className="px-3 py-3 font-medium theme-text-muted">Section</th>
-                  <th className="px-3 py-3 font-medium theme-text-muted">Class</th>
-                  <th className="px-3 py-3 font-medium theme-text-muted">Start date</th>
-                  <th className="px-3 py-3 font-medium theme-text-muted">Status</th>
-                  <th className="px-3 py-3 font-medium theme-text-muted">Actions</th>
+                  <th className="px-2.5 py-1.5 font-medium theme-text-muted">Section</th>
+                  <th className="px-2.5 py-1.5 font-medium theme-text-muted">Class</th>
+                  <th className="px-2.5 py-1.5 font-medium theme-text-muted">Start date</th>
+                  <th className="px-2.5 py-1.5 font-medium theme-text-muted">Status</th>
+                  <th className="px-2.5 py-1.5 font-medium theme-text-muted">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -109,15 +109,15 @@ export default function AdminSectionsPage() {
                   const isActive = section.IsActive ?? section.isActive ?? false;
                   return (
                     <tr key={sectionId} className="border-b border-black/5">
-                      <td className="px-3 py-3 font-medium theme-text">{sectionName}</td>
-                      <td className="px-3 py-3 theme-text-soft">{intermediateClass}</td>
-                      <td className="px-3 py-3 theme-text-soft">{startDate ? new Date(startDate).toLocaleString() : "Not provided"}</td>
-                      <td className="px-3 py-3 theme-text-soft">{isActive ? "Active" : "Inactive"}</td>
-                      <td className="px-3 py-3">
+                      <td className="px-2.5 py-1.5 font-medium theme-text">{sectionName}</td>
+                      <td className="px-2.5 py-1.5 theme-text-soft">{intermediateClass}</td>
+                      <td className="px-2.5 py-1.5 theme-text-soft">{startDate ? new Date(startDate).toLocaleString() : "Not provided"}</td>
+                      <td className="px-2.5 py-1.5 theme-text-soft">{isActive ? "Active" : "Inactive"}</td>
+                      <td className="px-2.5 py-1.5">
                         <div className="flex flex-wrap gap-2">
                           <button type="button" onClick={() => router.push(`/admin/sections/${sectionId}`)} className="theme-text-primary underline underline-offset-4">View</button>
                           <button type="button" onClick={() => router.push(`/admin/sections/${sectionId}/edit`)} className="theme-text-soft underline underline-offset-4">Edit</button>
-                          <button type="button" onClick={() => handleDelete(section)} className="text-red-300 underline underline-offset-4">Delete</button>
+                          <button type="button" onClick={() => handleDelete(section)} className="text-red-700 underline underline-offset-4">Delete</button>
                         </div>
                       </td>
                     </tr>

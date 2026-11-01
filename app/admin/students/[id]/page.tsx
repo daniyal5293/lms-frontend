@@ -76,13 +76,13 @@ export default function StudentDetailPage() {
                 </>
               }
             />
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-3 lg:grid-cols-2">
               <Card>
-                <div className="mb-4 flex items-center justify-between">
+                <div className="mb-2.5 flex items-center justify-between">
                   <h2 className="text-lg font-semibold theme-text">Institute info</h2>
                   <Badge tone={active ? "success" : "danger"}>{active ? "Active" : "Inactive"}</Badge>
                 </div>
-                <dl className="grid gap-4 text-sm sm:grid-cols-2">
+                <dl className="grid gap-2.5 text-sm sm:grid-cols-2">
                   <Field label="Student code"><span className="font-mono">{value(student, "StudentCode", "studentCode")}</span></Field>
                   <Field label="Cohort">{value(student, "Cohort", "cohort")}</Field>
                   <Field label="Campus">{value(student, "Campus", "campus")}</Field>
@@ -93,8 +93,8 @@ export default function StudentDetailPage() {
                 </dl>
               </Card>
               <Card>
-                <h2 className="mb-4 text-lg font-semibold theme-text">Personal info</h2>
-                <dl className="grid gap-4 text-sm sm:grid-cols-2">
+                <h2 className="mb-2.5 text-lg font-semibold theme-text">Personal info</h2>
+                <dl className="grid gap-2.5 text-sm sm:grid-cols-2">
                   <Field label="Father's name">{value(student, "FatherName", "fatherName")}</Field>
                   <Field label="Gender">{value(student, "Gender", "gender")}</Field>
                   <Field label="Date of birth">{formatDate(student.DateOfBirth ?? student.dateOfBirth)}</Field>

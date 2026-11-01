@@ -33,7 +33,7 @@ export default function CourseDetailPage() {
   }, [courseId]);
 
   if (loading) return <AppShell><div className="py-10 text-center theme-text-muted">Loading course details...</div></AppShell>;
-  if (error) return <AppShell><div className="py-10 text-center text-red-300">{error}</div></AppShell>;
+  if (error) return <AppShell><div className="py-10 text-center text-red-700">{error}</div></AppShell>;
   if (!course) return <AppShell><div className="py-10 text-center theme-text-muted">Course not found.</div></AppShell>;
 
   return (
@@ -45,11 +45,11 @@ export default function CourseDetailPage() {
       />
 
       <Card>
-        <dl className="space-y-4 text-sm">
-          <div className="flex justify-between gap-4 border-b border-black/10 pb-3"><dt className="theme-text-muted">Course name</dt><dd className="theme-text">{course.Name}</dd></div>
-          <div className="flex justify-between gap-4 border-b border-black/10 pb-3"><dt className="theme-text-muted">Course code</dt><dd className="theme-text">{course.Code || "Not provided"}</dd></div>
-          <div className="flex justify-between gap-4 border-b border-black/10 pb-3"><dt className="theme-text-muted">Credits</dt><dd className="theme-text">{course.Credits}</dd></div>
-          <div className="flex justify-between gap-4 border-b border-black/10 pb-3"><dt className="theme-text-muted">Description</dt><dd className="theme-text">{course.Description ?? "Not provided"}</dd></div>
+        <dl className="space-y-2.5 text-sm">
+          <div className="flex justify-between gap-2.5 border-b border-black/10 pb-3"><dt className="theme-text-muted">Course name</dt><dd className="theme-text">{course.Name}</dd></div>
+          <div className="flex justify-between gap-2.5 border-b border-black/10 pb-3"><dt className="theme-text-muted">Course code</dt><dd className="theme-text">{course.Code || "Not provided"}</dd></div>
+          <div className="flex justify-between gap-2.5 border-b border-black/10 pb-3"><dt className="theme-text-muted">Credits</dt><dd className="theme-text">{course.Credits}</dd></div>
+          <div className="flex justify-between gap-2.5 border-b border-black/10 pb-3"><dt className="theme-text-muted">Description</dt><dd className="theme-text">{course.Description ?? "Not provided"}</dd></div>
         </dl>
       </Card>
     </AppShell>

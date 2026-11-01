@@ -74,7 +74,7 @@ export default function AdminCoursesPage() {
         actions={<Button variant="primary" onClick={() => router.push("/admin/courses/new")}>Create Course</Button>}
       />
 
-      <Card className="mb-6">
+      <Card className="mb-3">
         <div className="max-w-md">
           <Input
             label="Search"
@@ -96,25 +96,25 @@ export default function AdminCoursesPage() {
             <table className="min-w-full text-left text-sm theme-text">
               <thead className="border-b border-black/10">
                 <tr>
-                  <th className="px-3 py-3 font-medium theme-text-muted">Code</th>
-                  <th className="px-3 py-3 font-medium theme-text-muted">Course</th>
-                  <th className="px-3 py-3 font-medium theme-text-muted">Credits</th>
-                  <th className="px-3 py-3 font-medium theme-text-muted">Description</th>
-                  <th className="px-3 py-3 font-medium theme-text-muted">Actions</th>
+                  <th className="px-2.5 py-1.5 font-medium theme-text-muted">Code</th>
+                  <th className="px-2.5 py-1.5 font-medium theme-text-muted">Course</th>
+                  <th className="px-2.5 py-1.5 font-medium theme-text-muted">Credits</th>
+                  <th className="px-2.5 py-1.5 font-medium theme-text-muted">Description</th>
+                  <th className="px-2.5 py-1.5 font-medium theme-text-muted">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredCourses.map((course) => (
                   <tr key={getCourseId(course) || course.Code} className="border-b border-black/5 align-top">
-                    <td className="px-3 py-3 font-medium theme-text">{course.Code || <span className="theme-text-muted">—</span>}</td>
-                    <td className="px-3 py-3 theme-text-soft">{course.Name}</td>
-                    <td className="px-3 py-3 theme-text-soft">{course.Credits}</td>
-                    <td className="px-3 py-3 theme-text-soft max-w-md">{course.Description ?? "No description provided."}</td>
-                    <td className="px-3 py-3">
+                    <td className="px-2.5 py-1.5 font-medium theme-text">{course.Code || <span className="theme-text-muted">—</span>}</td>
+                    <td className="px-2.5 py-1.5 theme-text-soft">{course.Name}</td>
+                    <td className="px-2.5 py-1.5 theme-text-soft">{course.Credits}</td>
+                    <td className="px-2.5 py-1.5 theme-text-soft max-w-md">{course.Description ?? "No description provided."}</td>
+                    <td className="px-2.5 py-1.5">
                       <div className="flex flex-wrap gap-2">
                         <button type="button" disabled={!getCourseId(course)} onClick={() => router.push(`/admin/courses/${getCourseId(course)}`)} className="theme-text-primary underline underline-offset-4 disabled:cursor-not-allowed disabled:opacity-50">View</button>
                         <button type="button" disabled={!getCourseId(course)} onClick={() => router.push(`/admin/courses/${getCourseId(course)}/edit`)} className="theme-text-soft underline underline-offset-4 disabled:cursor-not-allowed disabled:opacity-50">Edit</button>
-                        <button type="button" onClick={() => handleDelete(course)} className="text-red-300 underline underline-offset-4">Delete</button>
+                        <button type="button" onClick={() => handleDelete(course)} className="text-red-700 underline underline-offset-4">Delete</button>
                       </div>
                     </td>
                   </tr>

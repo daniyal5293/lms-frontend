@@ -130,11 +130,11 @@ export default function DepartmentsPage() {
               <table className="min-w-full text-left text-sm theme-text">
                 <thead className="border-b border-black/10">
                   <tr>
-                    <th className="px-3 py-3 font-medium theme-text-muted">Department</th>
-                    <th className="px-3 py-3 font-medium theme-text-muted">Teachers</th>
-                    <th className="px-3 py-3 font-medium theme-text-muted">Students</th>
-                    <th className="px-3 py-3 font-medium theme-text-muted">Status</th>
-                    <th className="px-3 py-3 font-medium theme-text-muted">Actions</th>
+                    <th className="px-2.5 py-1.5 font-medium theme-text-muted">Department</th>
+                    <th className="px-2.5 py-1.5 font-medium theme-text-muted">Teachers</th>
+                    <th className="px-2.5 py-1.5 font-medium theme-text-muted">Students</th>
+                    <th className="px-2.5 py-1.5 font-medium theme-text-muted">Status</th>
+                    <th className="px-2.5 py-1.5 font-medium theme-text-muted">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -142,19 +142,19 @@ export default function DepartmentsPage() {
                     const inUse = department.teacherCount + department.studentCount > 0;
                     return (
                       <tr key={department.departmentId} className="border-b border-black/5 align-top">
-                        <td className="px-3 py-3">
+                        <td className="px-2.5 py-1.5">
                           <div className="font-medium">{department.name}</div>
                           {department.description ? <div className="mt-0.5 max-w-md text-xs theme-text-muted">{department.description}</div> : null}
                         </td>
-                        <td className="px-3 py-3 theme-text-soft">{department.teacherCount}</td>
-                        <td className="px-3 py-3 theme-text-soft">{department.studentCount}</td>
-                        <td className="px-3 py-3">
+                        <td className="px-2.5 py-1.5 theme-text-soft">{department.teacherCount}</td>
+                        <td className="px-2.5 py-1.5 theme-text-soft">{department.studentCount}</td>
+                        <td className="px-2.5 py-1.5">
                           <Badge tone={department.isActive ? "success" : "warning"}>{department.isActive ? "Active" : "Inactive"}</Badge>
                         </td>
-                        <td className="px-3 py-3">
+                        <td className="px-2.5 py-1.5">
                           <div className="flex flex-wrap gap-3">
                             <button type="button" onClick={() => openForm(department)} className="theme-text-primary underline underline-offset-4">Edit</button>
-                            <button type="button" onClick={() => void toggleActive(department)} className="text-amber-300 underline underline-offset-4">
+                            <button type="button" onClick={() => void toggleActive(department)} className="text-amber-800 underline underline-offset-4">
                               {department.isActive ? "Deactivate" : "Activate"}
                             </button>
                             <button
@@ -162,7 +162,7 @@ export default function DepartmentsPage() {
                               onClick={() => void remove(department)}
                               disabled={inUse}
                               title={inUse ? "Move its teachers and students first, or deactivate it" : undefined}
-                              className="text-red-300 underline underline-offset-4 disabled:cursor-not-allowed disabled:no-underline disabled:opacity-40"
+                              className="text-red-700 underline underline-offset-4 disabled:cursor-not-allowed disabled:no-underline disabled:opacity-40"
                             >
                               Delete
                             </button>
@@ -183,7 +183,7 @@ export default function DepartmentsPage() {
           description="Inactive departments stay on existing records but can't be chosen for new ones."
           onClose={() => setEditing(null)}
         >
-          <form className="space-y-4" onSubmit={save} noValidate>
+          <form className="space-y-2.5" onSubmit={save} noValidate>
             <Input
               label="Name"
               maxLength={100}
@@ -201,7 +201,7 @@ export default function DepartmentsPage() {
                 value={form.description}
                 onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
                 placeholder="e.g. Pre-Engineering and Pre-Medical programs"
-                className="w-full rounded-xl border border-black/10 theme-bg-input px-3 py-2.5 theme-text placeholder:theme-text-muted focus:theme-border-primary focus:outline-none"
+                className="w-full rounded-lg border border-black/10 theme-bg-input px-3 py-2.5 theme-text placeholder:theme-text-muted focus:theme-border-primary focus:outline-none"
               />
             </label>
             <label className="flex items-center gap-2 text-sm theme-text-soft">

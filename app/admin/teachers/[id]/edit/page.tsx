@@ -96,8 +96,8 @@ export default function EditTeacherPage() {
       <PageHeader title="Edit Teacher" description="Update employment and academic information." />
 
       <Card>
-        <form className="space-y-6" onSubmit={handleSubmit} noValidate>
-          <div className="grid gap-5 md:grid-cols-2">
+        <form className="space-y-3" onSubmit={handleSubmit} noValidate>
+          <div className="grid gap-3 md:grid-cols-2">
             <Input label="Full name" value={form.Fullname} onChange={(event) => setForm((current) => ({ ...current, Fullname: event.target.value }))} />
             <Input label="Email" type="email" value={form.Email} onChange={(event) => setForm((current) => ({ ...current, Email: event.target.value }))} />
             <DepartmentSelect value={form.DepartmentId} onChange={(departmentId) => setForm((current) => ({ ...current, DepartmentId: departmentId }))} />

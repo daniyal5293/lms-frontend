@@ -50,7 +50,7 @@ export default function ChangePasswordPage() {
       <AppShell>
         <PageHeader title="Change password" description="Update the password for your LMS account." />
         <Card className="max-w-xl">
-          <form className="space-y-5" onSubmit={handleSubmit} noValidate>
+          <form className="space-y-3" onSubmit={handleSubmit} noValidate>
             <Input label="Current password" type="password" autoComplete="current-password" value={form.currentPassword} onChange={(event) => setForm((current) => ({ ...current, currentPassword: event.target.value }))} />
             <Input label="New password" type="password" autoComplete="new-password" value={form.newPassword} onChange={(event) => setForm((current) => ({ ...current, newPassword: event.target.value }))} />
             <Input label="Confirm new password" type="password" autoComplete="new-password" value={form.confirmPassword} onChange={(event) => setForm((current) => ({ ...current, confirmPassword: event.target.value }))} />

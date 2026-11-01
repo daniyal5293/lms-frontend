@@ -62,7 +62,7 @@ export default function RolesPage() {
       <AppShell>
         <PageHeader title="Roles" description="Manage available application roles and access groups." />
 
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-3 lg:grid-cols-2">
         <Card>
           {loading ? <div className="text-sm theme-text-muted">Loading roles...</div> : (
             <div className="flex flex-wrap gap-3">
@@ -74,7 +74,7 @@ export default function RolesPage() {
         </Card>
 
         <Card>
-          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+          <form onSubmit={handleSubmit} className="space-y-2.5" noValidate>
             <Input label="Role name" placeholder="Teacher" value={newRole} onChange={(event) => setNewRole(event.target.value)} />
             <Button type="submit" className="w-full" loading={submitting}>{submitting ? "Creating..." : "Create Role"}</Button>
           </form>

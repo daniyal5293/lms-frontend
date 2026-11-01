@@ -75,8 +75,8 @@ export default function EditCoursePage() {
       <PageHeader title="Edit Course" description="Update course details and curriculum metadata." />
 
       <Card>
-        <form className="space-y-6" onSubmit={handleSubmit} noValidate>
-          <div className="grid gap-5 md:grid-cols-2">
+        <form className="space-y-3" onSubmit={handleSubmit} noValidate>
+          <div className="grid gap-3 md:grid-cols-2">
             <Input label="Course name" value={form.Name} onChange={(event) => setForm((current) => ({ ...current, Name: event.target.value }))} />
             <Input label="Course code" placeholder="e.g. PHY-101" maxLength={20} value={form.Code} onChange={(event) => setForm((current) => ({ ...current, Code: event.target.value }))} />
             <Input label="Credits" type="number" value={form.Credits} onChange={(event) => setForm((current) => ({ ...current, Credits: event.target.value }))} />

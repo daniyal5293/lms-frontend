@@ -105,21 +105,21 @@ export function LookupAdminPage({ kind, labels }: { kind: LookupKind; labels: La
               <table className="min-w-full text-left text-sm theme-text">
                 <thead className="border-b border-black/10">
                   <tr>
-                    <th className="px-3 py-3 font-medium theme-text-muted">{labels.singular}</th>
-                    <th className="px-3 py-3 font-medium theme-text-muted">Students</th>
-                    <th className="px-3 py-3 font-medium theme-text-muted">Status</th>
-                    <th className="px-3 py-3 font-medium theme-text-muted">Actions</th>
+                    <th className="px-2.5 py-1.5 font-medium theme-text-muted">{labels.singular}</th>
+                    <th className="px-2.5 py-1.5 font-medium theme-text-muted">Students</th>
+                    <th className="px-2.5 py-1.5 font-medium theme-text-muted">Status</th>
+                    <th className="px-2.5 py-1.5 font-medium theme-text-muted">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.map((item) => (
                     <tr key={item.id} className="border-b border-black/5">
-                      <td className="px-3 py-3 font-medium">{item.name}</td>
-                      <td className="px-3 py-3 theme-text-soft">{item.studentCount}</td>
-                      <td className="px-3 py-3">
+                      <td className="px-2.5 py-1.5 font-medium">{item.name}</td>
+                      <td className="px-2.5 py-1.5 theme-text-soft">{item.studentCount}</td>
+                      <td className="px-2.5 py-1.5">
                         <Badge tone={item.isActive ? "success" : "warning"}>{item.isActive ? "Active" : "Inactive"}</Badge>
                       </td>
-                      <td className="px-3 py-3">
+                      <td className="px-2.5 py-1.5">
                         <div className="flex flex-wrap gap-3">
                           <button type="button" onClick={() => openForm(item)} className="theme-text-primary underline underline-offset-4">Edit</button>
                           <button type="button" onClick={() => void toggle(item)} className="text-amber-600 underline underline-offset-4">{item.isActive ? "Deactivate" : "Activate"}</button>
@@ -148,7 +148,7 @@ export function LookupAdminPage({ kind, labels }: { kind: LookupKind; labels: La
           description="Inactive items stay on existing students but can't be chosen for new ones."
           onClose={() => setEditing(null)}
         >
-          <form className="space-y-4" onSubmit={save} noValidate>
+          <form className="space-y-2.5" onSubmit={save} noValidate>
             <Input label="Name" maxLength={100} value={name} onChange={(event) => setName(event.target.value)} placeholder={labels.placeholder} error={error || undefined} />
             <label className="flex items-center gap-2 text-sm theme-text-soft">
               <input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} />

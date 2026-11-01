@@ -57,8 +57,8 @@ export default function NewSectionPage() {
       <PageHeader title="Create Section" description="Create a section with its class level, start date, and active state." />
 
       <Card>
-        <form className="space-y-6" onSubmit={handleSubmit} noValidate>
-          <div className="grid gap-5 md:grid-cols-2">
+        <form className="space-y-3" onSubmit={handleSubmit} noValidate>
+          <div className="grid gap-3 md:grid-cols-2">
             <Input label="Section name" value={form.sectionName} onChange={(event) => setForm((current) => ({ ...current, sectionName: event.target.value }))} />
             <Input label="Intermediate class" placeholder="XI" value={form.IntermediateClass} onChange={(event) => setForm((current) => ({ ...current, IntermediateClass: event.target.value }))} />
             <Input label="Start date" type="datetime-local" value={form.StartDate} onChange={(event) => setForm((current) => ({ ...current, StartDate: event.target.value }))} />

@@ -98,7 +98,7 @@ function InboxTab() {
 
   return (
     <Card>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-2.5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex gap-2">
           <Button variant={unreadOnly ? "ghost" : "secondary"} onClick={() => setUnreadOnly(false)}>All</Button>
           <Button variant={unreadOnly ? "secondary" : "ghost"} onClick={() => setUnreadOnly(true)}>Unread ({unreadCount})</Button>
@@ -115,7 +115,7 @@ function InboxTab() {
           {visible.map((item) => (
             <li
               key={item.id}
-              className={cn("rounded-xl border border-black/10 p-4", !item.isRead && "theme-bg-primary-tint")}
+              className={cn("rounded-lg border border-black/10 p-3", !item.isRead && "theme-bg-primary-tint")}
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
@@ -231,8 +231,8 @@ function SendTab({ onSent }: { onSent: () => void }) {
 
   return (
     <Card>
-      <form className="space-y-5" onSubmit={submit} noValidate>
-        <div className="grid gap-4 md:grid-cols-3">
+      <form className="space-y-3" onSubmit={submit} noValidate>
+        <div className="grid gap-2.5 md:grid-cols-3">
           <Select label="Send to" value={audience} onChange={(event) => changeAudience(event.target.value as NotificationAudience)}>
             {targets.audiences.map((item) => <option key={item.audience} value={item.audience}>{item.audience}</option>)}
           </Select>
@@ -272,7 +272,7 @@ function SendTab({ onSent }: { onSent: () => void }) {
             maxLength={4000}
             onChange={(event) => setMessage(event.target.value)}
             rows={5}
-            className="w-full rounded-xl border border-black/10 theme-bg-input px-3 py-2.5 theme-text placeholder:theme-text-muted focus:theme-border-primary focus:outline-none"
+            className="w-full rounded-lg border border-black/10 theme-bg-input px-3 py-2.5 theme-text placeholder:theme-text-muted focus:theme-border-primary focus:outline-none"
           />
         </label>
 
@@ -324,7 +324,7 @@ function SentTab() {
 
   return (
     <Card>
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="mb-2.5 flex items-center justify-between gap-3">
         <p className="text-xs theme-text-muted">
           Pushed: sent to the person&apos;s open sessions. Confirmed: their browser acknowledged it. People who were offline see it next time they sign in.
         </p>
@@ -340,39 +340,39 @@ function SentTab() {
           <table className="min-w-full text-left text-sm theme-text">
             <thead className="border-b border-black/10">
               <tr>
-                <th className="px-3 py-3 font-medium theme-text-muted">Notification</th>
-                <th className="px-3 py-3 font-medium theme-text-muted">Audience</th>
-                <th className="px-3 py-3 font-medium theme-text-muted">Status</th>
-                <th className="px-3 py-3 font-medium theme-text-muted">Delivery</th>
-                <th className="px-3 py-3 font-medium theme-text-muted">Sent</th>
-                <th className="px-3 py-3 font-medium theme-text-muted" />
+                <th className="px-2.5 py-1.5 font-medium theme-text-muted">Notification</th>
+                <th className="px-2.5 py-1.5 font-medium theme-text-muted">Audience</th>
+                <th className="px-2.5 py-1.5 font-medium theme-text-muted">Status</th>
+                <th className="px-2.5 py-1.5 font-medium theme-text-muted">Delivery</th>
+                <th className="px-2.5 py-1.5 font-medium theme-text-muted">Sent</th>
+                <th className="px-2.5 py-1.5 font-medium theme-text-muted" />
               </tr>
             </thead>
             <tbody>
               {sent.map((item) => (
                 <tr key={item.id} className="border-b border-black/5 align-top">
-                  <td className="px-3 py-3">
+                  <td className="px-2.5 py-1.5">
                     <div className="font-medium">{item.title}</div>
                     <div className="text-xs theme-text-muted">by {item.senderName} ({item.senderRole})</div>
                   </td>
-                  <td className="px-3 py-3 theme-text-soft">
+                  <td className="px-2.5 py-1.5 theme-text-soft">
                     {item.audience}
                     <div className="text-xs theme-text-muted">
                       {item.scope === "All" ? "Everyone eligible" : item.scope === "Section" ? formatSectionText(item.section) : `${item.recipientCount} selected`}
                     </div>
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-2.5 py-1.5">
                     <Badge tone={statusTone[item.status]}>{item.status}</Badge>
-                    {item.status !== "Processed" && item.lastError ? <div className="mt-1 max-w-48 text-xs text-red-400">{item.lastError}</div> : null}
+                    {item.status !== "Processed" && item.lastError ? <div className="mt-1 max-w-48 text-xs text-red-700">{item.lastError}</div> : null}
                     {item.status === "Queued" && item.nextAttemptAt ? <div className="mt-1 text-xs theme-text-muted">Next retry {formatDateTime(item.nextAttemptAt)}</div> : null}
                   </td>
-                  <td className="px-3 py-3 text-xs theme-text-soft whitespace-nowrap">
+                  <td className="px-2.5 py-1.5 text-xs theme-text-soft whitespace-nowrap">
                     <div>Pushed {item.attempted + item.acknowledged} / {item.recipientCount}</div>
                     <div>Confirmed {item.acknowledged} · Read {item.readCount}</div>
-                    {item.failed > 0 ? <div className="text-red-400">Failed {item.failed}</div> : null}
+                    {item.failed > 0 ? <div className="text-red-700">Failed {item.failed}</div> : null}
                   </td>
-                  <td className="px-3 py-3 text-xs theme-text-muted whitespace-nowrap">{formatDateTime(item.createdAt)}</td>
-                  <td className="px-3 py-3">
+                  <td className="px-2.5 py-1.5 text-xs theme-text-muted whitespace-nowrap">{formatDateTime(item.createdAt)}</td>
+                  <td className="px-2.5 py-1.5">
                     {item.status === "Failed" ? (
                       <button type="button" onClick={() => void retry(item)} className="text-xs theme-text-primary underline underline-offset-4">Retry</button>
                     ) : null}

@@ -143,9 +143,9 @@ export function StudentForm({
 
   return (
     <form className="space-y-8" onSubmit={submit} noValidate>
-      <fieldset className="space-y-4">
+      <fieldset className="space-y-2.5">
         <legend className="mb-1 text-sm font-semibold uppercase tracking-wide theme-text-primary">Student</legend>
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
           <Input label="Student code" inputMode="numeric" maxLength={10} placeholder="e.g. 2001061" value={form.studentCode} onChange={(event) => set("studentCode")(event.target.value.replace(/\D/g, ""))} error={errors.studentCode} />
           <Input label="Full name" value={form.fullName} onChange={(event) => set("fullName")(event.target.value)} error={errors.fullName} />
           <Input label="Father's name" value={form.fatherName} onChange={(event) => set("fatherName")(event.target.value)} error={errors.fatherName} />
@@ -159,17 +159,17 @@ export function StudentForm({
         </div>
       </fieldset>
 
-      <fieldset className="space-y-4">
+      <fieldset className="space-y-2.5">
         <legend className="mb-1 text-sm font-semibold uppercase tracking-wide theme-text-primary">Contact</legend>
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
           <Input label="Email" type="email" value={form.email} onChange={(event) => set("email")(event.target.value)} error={errors.email} />
           <Input label="Phone number" type="tel" placeholder="0300-1234567" value={form.phoneNumber} onChange={(event) => set("phoneNumber")(event.target.value)} error={errors.phoneNumber} />
         </div>
       </fieldset>
 
-      <fieldset className="space-y-4">
+      <fieldset className="space-y-2.5">
         <legend className="mb-1 text-sm font-semibold uppercase tracking-wide theme-text-primary">Enrollment</legend>
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
           <Input label="Major subject" list="major-subjects" placeholder="e.g. Pre-Engineering" value={form.majorSubject} onChange={(event) => set("majorSubject")(event.target.value)} error={errors.majorSubject} />
           <datalist id="major-subjects">
             {MAJOR_SUBJECTS.map((subject) => <option key={subject} value={subject} />)}

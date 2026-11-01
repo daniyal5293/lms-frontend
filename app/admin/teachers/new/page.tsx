@@ -86,8 +86,8 @@ export default function NewTeacherPage() {
       <PageHeader title="Create Teacher" description="Add a new teacher record with the required employment details." />
 
       <Card>
-        <form className="space-y-6" onSubmit={handleSubmit} noValidate>
-          <div className="grid gap-5 md:grid-cols-2">
+        <form className="space-y-3" onSubmit={handleSubmit} noValidate>
+          <div className="grid gap-3 md:grid-cols-2">
             <Input label="Full name" value={form.fullName} onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))} error={errors.fullName} />
             <Input label="Email" type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} error={errors.email} />
             <Input label="CNIC" value={form.cnic} onChange={(event) => setForm((current) => ({ ...current, cnic: event.target.value }))} error={errors.cnic} />

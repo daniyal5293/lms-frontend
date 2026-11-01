@@ -91,8 +91,8 @@ export default function TeacherStudentsPage() {
     <ProtectedRoute allowedRoles={["Teacher", "HOD"]}>
       <AppShell>
         <PageHeader title="Students" description="View the students assigned to your sections." />
-        <div className="space-y-5">
-          <Card className="flex flex-wrap items-end gap-4">
+        <div className="space-y-3">
+          <Card className="flex flex-wrap items-end gap-2.5">
             <div className="min-w-64 flex-1">
               <Select label="Section" value={selectedSection} onChange={(event) => { setLoading(true); setSelectedSection(event.target.value); }} disabled={sections.length === 0}>
                 <GroupedOptions items={sections} groupOf={(assignment) => `Class ${assignmentClass(assignment) || "—"}`} valueOf={sectionId} labelOf={assignmentSectionLabel} />
@@ -108,8 +108,8 @@ export default function TeacherStudentsPage() {
             {loading ? <p className="py-8 text-sm theme-text-muted">Loading students...</p> : filteredStudents.length === 0 ? <p className="py-8 text-sm theme-text-muted">No students found.</p> : (
               <div className="overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
-                  <thead className="border-b border-black/10 text-xs uppercase tracking-wide theme-text-muted"><tr><th className="px-3 py-3">Student</th><th className="px-3 py-3">Email</th><th className="px-3 py-3">Phone</th><th className="px-3 py-3">Date of birth</th><th className="px-3 py-3">CNIC</th></tr></thead>
-                  <tbody>{filteredStudents.map((student) => <tr key={studentId(student) || student.email || studentName(student)} className="border-b border-black/5"><td className="px-3 py-3"><div className="font-medium">{studentName(student)}</div><div className="mt-1 text-xs theme-text-muted">{formatSectionText(student.section, selectedSectionLabel)}</div></td><td className="px-3 py-3 theme-text-muted">{student.email || "-"}</td><td className="px-3 py-3 theme-text-muted">{student.phoneNumber || "-"}</td><td className="px-3 py-3 theme-text-muted">{formatDate(student.dateOfBirth)}</td><td className="px-3 py-3 theme-text-muted">{student.cnic || "-"}</td></tr>)}</tbody>
+                  <thead className="border-b border-black/10 text-xs uppercase tracking-wide theme-text-muted"><tr><th className="px-2.5 py-1.5">Student</th><th className="px-2.5 py-1.5">Email</th><th className="px-2.5 py-1.5">Phone</th><th className="px-2.5 py-1.5">Date of birth</th><th className="px-2.5 py-1.5">CNIC</th></tr></thead>
+                  <tbody>{filteredStudents.map((student) => <tr key={studentId(student) || student.email || studentName(student)} className="border-b border-black/5"><td className="px-2.5 py-1.5"><div className="font-medium">{studentName(student)}</div><div className="mt-1 text-xs theme-text-muted">{formatSectionText(student.section, selectedSectionLabel)}</div></td><td className="px-2.5 py-1.5 theme-text-muted">{student.email || "-"}</td><td className="px-2.5 py-1.5 theme-text-muted">{student.phoneNumber || "-"}</td><td className="px-2.5 py-1.5 theme-text-muted">{formatDate(student.dateOfBirth)}</td><td className="px-2.5 py-1.5 theme-text-muted">{student.cnic || "-"}</td></tr>)}</tbody>
                 </table>
               </div>
             )}

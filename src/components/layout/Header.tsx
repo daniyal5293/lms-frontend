@@ -21,7 +21,7 @@ export function Header() {
   const currentUser = user;
   const role = currentUser?.Roles?.[0] ?? "Student";
   const mobileNavigationByRole: Record<Role, { label: string; href: string }[]> = {
-    Admin: [{ label: "Dashboard", href: "/dashboard" }, { label: "Teachers", href: "/admin/teachers" }, { label: "Students", href: "/admin/students" }, { label: "Courses", href: "/admin/courses" }, { label: "Sections", href: "/admin/sections" }, { label: "Departments", href: "/admin/departments" }, { label: "Cohorts", href: "/admin/cohorts" }, { label: "Campuses", href: "/admin/campuses" }, { label: "Roles", href: "/admin/roles" }, { label: "Notifications", href: "/notifications" }],
+    Admin: [{ label: "Dashboard", href: "/dashboard" }, { label: "Teachers", href: "/admin/teachers" }, { label: "Students", href: "/admin/students" }, { label: "Courses", href: "/admin/courses" }, { label: "Sections", href: "/admin/sections" }, { label: "Fee Management", href: "/admin/fees" }, { label: "Departments", href: "/admin/departments" }, { label: "Cohorts", href: "/admin/cohorts" }, { label: "Campuses", href: "/admin/campuses" }, { label: "Roles", href: "/admin/roles" }, { label: "Email Setup", href: "/admin/email-settings" }, { label: "Notifications", href: "/notifications" }],
     Teacher: [{ label: "Dashboard", href: "/dashboard" }, { label: "Exams", href: "/teacher" }, { label: "Attendance", href: "/teacher/attendance" }, { label: "Students", href: "/teacher/students" }, { label: "Notifications", href: "/notifications" }],
     Student: [{ label: "Dashboard", href: "/dashboard" }, { label: "Student Area", href: "/student" }, { label: "Notifications", href: "/notifications" }],
     HOD: [{ label: "Dashboard", href: "/dashboard" }, { label: "HOD Area", href: "/hod" }, { label: "Fee Management", href: "/hod/fee-management" }, { label: "Notifications", href: "/notifications" }],
@@ -41,17 +41,17 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-black/10 theme-bg-page backdrop-blur">
-      <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6">
+      <div className="flex h-12 items-center justify-between gap-2 px-3 sm:px-4">
         <div className="flex items-center gap-3 lg:hidden">
           <button
             type="button"
             onClick={() => setMenuOpen((current) => !current)}
-            className="rounded-xl border border-black/10 theme-bg-surface px-3 py-2 text-sm theme-text"
+            className="rounded-lg border border-black/10 theme-bg-surface px-2.5 py-1.5 text-sm theme-text"
             aria-label="Toggle navigation"
           >
             Menu
           </button>
-          <Link href="/dashboard" className="flex items-center gap-2 text-base font-semibold theme-text">
+          <Link href="/dashboard" className="flex items-center gap-2 whitespace-nowrap text-sm font-semibold theme-text">
             <Image src="/tcf-mark.png" alt="" width={26} height={20} />
             TCF Campus
           </Link>
@@ -61,30 +61,30 @@ export function Header() {
           <span className="theme-text">{pathname}</span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
           <NotificationBell />
-          <div className="hidden rounded-xl border border-black/10 theme-bg-surface px-3 py-2 text-sm theme-text-soft sm:block">
+          <div className="hidden rounded-lg border border-black/10 theme-bg-surface px-2.5 py-1 text-xs theme-text-soft sm:block">
             {currentUser?.Roles?.[0] ?? "User"}
           </div>
-          <div className="flex items-center gap-2 rounded-xl border border-black/10 theme-bg-surface px-2 py-1.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full theme-bg-primary text-xs font-semibold theme-text-on-primary">
+          <div className="flex items-center gap-2 rounded-lg border border-black/10 theme-bg-surface px-1.5 py-0.5">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full theme-bg-primary text-xs font-semibold theme-text-on-primary">
               {getInitials(currentUser?.FullName ?? currentUser?.Email ?? "U")}
             </div>
             <div className="hidden text-left sm:block">
-              <p className="text-sm font-medium theme-text">{currentUser?.FullName ?? "User"}</p>
-              <p className="text-[11px] theme-text-muted">{currentUser?.Email ?? ""}</p>
+              <p className="text-xs font-medium leading-tight theme-text">{currentUser?.FullName ?? "User"}</p>
+              <p className="text-[10px] leading-tight theme-text-muted">{currentUser?.Email ?? ""}</p>
             </div>
           </div>
           <Link
             href="/account/change-password"
-            className="rounded-xl border border-black/10 bg-transparent px-3 py-2 text-sm theme-text transition hover:bg-black/5"
+            className="hidden whitespace-nowrap rounded-lg border border-black/10 bg-transparent px-2.5 py-1 text-sm theme-text transition hover:bg-black/5 md:block"
           >
             Change password
           </Link>
           <button
             type="button"
             onClick={handleLogout}
-            className="rounded-xl border border-black/10 bg-transparent px-3 py-2 text-sm theme-text transition hover:bg-black/5"
+            className="rounded-lg border border-black/10 bg-transparent px-2.5 py-1 text-sm theme-text transition hover:bg-black/5"
           >
             Logout
           </button>

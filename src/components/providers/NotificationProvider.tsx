@@ -52,7 +52,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         {items.map((item) => (
           <div
             key={item.id}
-            className="pointer-events-auto rounded-xl border border-black/10 theme-bg-input p-4 text-sm shadow-xl"
+            className="pointer-events-auto rounded-lg border border-black/10 theme-bg-input p-3 text-sm shadow-xl"
           >
             <div className="mb-1 flex items-center justify-between gap-3">
               <span className="font-semibold theme-text">{item.title}</span>

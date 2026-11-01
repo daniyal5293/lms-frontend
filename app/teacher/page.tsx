@@ -404,7 +404,7 @@ export default function TeacherExamsPage() {
             </Badge>
           </div>
 
-          <div className="mb-6 grid gap-4 rounded-xl border border-black/10 theme-bg-page p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+          <div className="mb-3 grid gap-2.5 rounded-lg border border-black/10 theme-bg-page p-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
             <Select
               label="Assigned course and section"
               value={selectedAssignmentId}
@@ -449,7 +449,7 @@ export default function TeacherExamsPage() {
           ) : (
             <>
               {/* SECTION NAVIGATION */}
-              <div className="mb-6 space-y-2 border-b border-black/10 pb-4">
+              <div className="mb-3 space-y-2 border-b border-black/10 pb-4">
                 {sectionGroups.map(([group, groupSections]) => (
                   <div key={group} className="flex flex-wrap items-center gap-2">
                     <span className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wide theme-text-muted">
@@ -501,7 +501,7 @@ export default function TeacherExamsPage() {
                           exam
                         )}`
                       }
-                      className="rounded-xl border border-black/10 theme-bg-page p-4"
+                      className="rounded-lg border border-black/10 theme-bg-page p-3"
                     >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>

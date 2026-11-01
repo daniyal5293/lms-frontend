@@ -445,9 +445,9 @@ export default function TeacherAttendancePage() {
           description="Record, review, and update attendance by course, section, and date."
         />
 
-        <Card className="rounded-xl p-3 sm:p-4">
+        <Card className="rounded-lg p-3 sm:p-3">
           <form
-            className="space-y-4"
+            className="space-y-2.5"
             onSubmit={submit}
           >
             <div className="grid gap-3 md:grid-cols-3">
@@ -541,7 +541,7 @@ export default function TeacherAttendancePage() {
                     : `${monthLabel} attendance`}
                 </p>
                 <p className="mt-1 text-xs theme-text-muted">
-                  Choose a status in any day column, add a remark, then save the changed cells.
+                  Choose a status for each student, double-click a cell to add a remark, then save.
                 </p>
               </div>
               <span className="theme-text-muted">
@@ -559,7 +559,7 @@ export default function TeacherAttendancePage() {
                 <table className="min-w-max border-separate border-spacing-0 text-left text-xs">
                   <thead className="border-b border-black/10">
                     <tr>
-                      <th scope="col" className="sticky left-0 top-0 z-40 w-44 min-w-44 max-w-44 border-b border-r border-black/10 theme-bg-surface px-3 py-2 text-left text-xs uppercase tracking-wide theme-text-muted shadow-lg">
+                      <th scope="col" className="sticky left-0 top-0 z-40 w-36 min-w-36 max-w-36 border-b border-r border-black/10 theme-bg-surface px-2.5 py-1 text-left text-xs uppercase tracking-wide theme-text-muted shadow-lg">
                         Students
                       </th>
                       {visibleDates.map((date) => {
@@ -570,10 +570,10 @@ export default function TeacherAttendancePage() {
                           <th
                             key={date}
                             data-date={date}
-                            className={`sticky top-0 z-30 min-w-16 border-b border-l border-black/10 theme-bg-surface px-1 py-2 text-center ${isToday ? "theme-bg-primary-soft" : ""} ${isFuture || date !== activeDate ? "opacity-40" : ""}`}
+                            className={`sticky top-0 z-30 min-w-16 border-b border-l border-black/10 theme-bg-surface px-1 py-0.5 text-center ${isToday ? "theme-bg-primary-soft" : ""} ${isFuture || date !== activeDate ? "opacity-40" : ""}`}
                           >
                             <span className="block font-semibold theme-text">{day.getDate()}</span>
-                            <span className="block text-xs uppercase tracking-wide theme-text-muted">
+                            <span className="block text-[10px] uppercase tracking-wide theme-text-muted">
                               {new Intl.DateTimeFormat("en", { weekday: "short" }).format(day)}
                             </span>
                           </th>
@@ -593,7 +593,7 @@ export default function TeacherAttendancePage() {
                         >
                           <td
                             scope="row"
-                            className="sticky left-0 z-20 w-44 min-w-44 max-w-44 border-b border-r border-black/5 theme-bg-surface px-3 py-2 shadow-lg"
+                            className="sticky left-0 z-20 w-36 min-w-36 max-w-36 border-b border-r border-black/5 theme-bg-surface px-2.5 py-0.5 shadow-lg"
                           >
                             <span className="block truncate font-medium theme-text" title={getName(student)}>
                               {getName(student)}
@@ -617,13 +617,13 @@ export default function TeacherAttendancePage() {
                                   }
                                 }}
                                 title="Double-click or press Enter to edit remark"
-                                className={`min-w-16 border-b border-l border-black/10 px-0.5 py-1 align-top ${date === todayIso ? "theme-bg-primary-tint" : ""} ${!isActiveDate ? "theme-bg-page-muted" : ""}`}
+                                className={`min-w-16 border-b border-l border-black/10 px-0.5 py-0.5 align-top ${date === todayIso ? "theme-bg-primary-tint" : ""} ${!isActiveDate ? "theme-bg-page-muted" : ""}`}
                               >
                                 <Select
                                   aria-label={`${getName(student)} status for ${date}`}
                                   value={statusByCell[key] ?? ""}
                                   disabled={loadingAttendance || submitting || isFuture || !isActiveDate}
-                                  className="w-14 rounded-md px-0.5 py-1 text-xs"
+                                  className="w-14 rounded px-0.5 py-0.5 text-xs"
                                   onChange={(event) => {
                                     const value = event.target.value as AttendanceStatus;
                                     setStatusByCell((current) => ({ ...current, [key]: value }));
@@ -653,11 +653,11 @@ export default function TeacherAttendancePage() {
                                     }}
                                     placeholder="Remark"
                                   />
-                                ) : (
-                                  <span className="mt-1 block min-h-5 w-28 truncate px-1 text-xs theme-text-muted">
-                                    {remarksByCell[key] || (isActiveDate ? "Double-click for remark" : "")}
+                                ) : remarksByCell[key] ? (
+                                  <span className="mt-0.5 block w-14 truncate px-0.5 text-[10px] theme-text-muted" title={remarksByCell[key]}>
+                                    {remarksByCell[key]}
                                   </span>
-                                )}
+                                ) : null}
                               </td>
                             );
                           })}

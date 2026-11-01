@@ -121,9 +121,9 @@ export default function StudentPage() {
           description="Review your attendance record by course and date range."
         />
 
-        <div className="space-y-5">
+        <div className="space-y-3">
           <Card>
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-2.5 md:grid-cols-3">
               <Select
                 label="Course"
                 value={courseId}
@@ -144,7 +144,7 @@ export default function StudentPage() {
             </div>
           </Card>
 
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-5">
             {[
               ["Attendance", `${summary.percentage}%`],
               ["Sessions", summary.total],
@@ -152,7 +152,7 @@ export default function StudentPage() {
               ["Late", summary.late],
               ["Absent / Leave", summary.absent + summary.leave],
             ].map(([label, value]) => (
-              <Card key={label as string} className="p-4">
+              <Card key={label as string} className="p-3">
                 <p className="text-xs uppercase tracking-widest theme-text-muted">{label}</p>
                 <p className="mt-2 text-2xl font-semibold theme-text">{value}</p>
                 {label === "Attendance" ? <p className="mt-1 text-xs theme-text-muted">Present and late count</p> : null}
@@ -182,19 +182,19 @@ export default function StudentPage() {
                 <table className="min-w-full text-left text-sm">
                   <thead className="border-b border-black/10 theme-text-muted">
                     <tr>
-                      <th className="px-5 py-3 font-medium">Date</th>
-                      <th className="px-5 py-3 font-medium">Course</th>
-                      <th className="px-5 py-3 font-medium">Status</th>
-                      <th className="px-5 py-3 font-medium">Remarks</th>
+                      <th className="px-3 py-2 font-medium">Date</th>
+                      <th className="px-3 py-2 font-medium">Course</th>
+                      <th className="px-3 py-2 font-medium">Status</th>
+                      <th className="px-3 py-2 font-medium">Remarks</th>
                     </tr>
                   </thead>
                   <tbody>
                     {records.map((record) => (
                       <tr key={record.AttendanceId || `${record.AttendanceDate}-${record.TeacherSectionCourseId}`} className="border-b border-black/5 last:border-0">
-                        <td className="px-5 py-4 theme-text">{formatDate(record.AttendanceDate)}</td>
-                        <td className="px-5 py-4 theme-text-soft">{record.CourseName ?? "Course"}</td>
-                        <td className="px-5 py-4"><Badge tone={statusTone[record.Status]}>{record.Status}</Badge></td>
-                        <td className="px-5 py-4 theme-text-muted">{record.Remarks || "-"}</td>
+                        <td className="px-3 py-2 theme-text">{formatDate(record.AttendanceDate)}</td>
+                        <td className="px-3 py-2 theme-text-soft">{record.CourseName ?? "Course"}</td>
+                        <td className="px-3 py-2"><Badge tone={statusTone[record.Status]}>{record.Status}</Badge></td>
+                        <td className="px-3 py-2 theme-text-muted">{record.Remarks || "-"}</td>
                       </tr>
                     ))}
                   </tbody>

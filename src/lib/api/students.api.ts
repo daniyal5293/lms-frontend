@@ -111,7 +111,7 @@ export async function setStudentStatus(id: string, isActive: boolean) {
 }
 
 export async function deleteStudent(id: string) {
-  return apiFetch<void>(`/api/student/${id}`, { method: "DELETE" });
+  return apiFetch<{ message?: string; deactivated?: boolean }>(`/api/student/${id}`, { method: "DELETE" });
 }
 
 export async function exportStudents() {

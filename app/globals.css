@@ -31,8 +31,10 @@
   --secondary-accent: var(--secondary);
 }
 
+/* Compact, data-dense panels: Tailwind sizes are rem-based, so this scales type and spacing together */
 html {
   background: var(--background);
+  font-size: 15px;
 }
 
 body {

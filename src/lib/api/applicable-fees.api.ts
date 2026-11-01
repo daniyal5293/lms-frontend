@@ -37,10 +37,14 @@ export async function createApplicableFee(payload: ApplicableFeePayload) {
 }
 
 export async function createApplicableFeesBulk(payload: BulkApplicableFeePayload) {
-  return apiFetch<ApplicableFee[]>("/api/applicablefee/bulk", {
+  return apiFetch<{ created: number; skipped: { reason: string }[] }>("/api/applicablefee/bulk", {
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export async function deleteApplicableFee(id: string) {
+  return apiFetch(`/api/applicablefee/${id}`, { method: "DELETE" });
 }
 
 export async function updateApplicableFee(id: string, payload: ApplicableFeePayload) {

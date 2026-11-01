@@ -56,8 +56,8 @@ export default function NewCoursePage() {
       <PageHeader title="Create Course" description="Add a new course to the curriculum catalog." />
 
       <Card>
-        <form className="space-y-6" onSubmit={handleSubmit} noValidate>
-          <div className="grid gap-5 md:grid-cols-2">
+        <form className="space-y-3" onSubmit={handleSubmit} noValidate>
+          <div className="grid gap-3 md:grid-cols-2">
             <Input label="Course name" value={form.CourseName} onChange={(event) => setForm((current) => ({ ...current, CourseName: event.target.value }))} />
             <Input label="Course code" placeholder="e.g. PHY-101" maxLength={20} value={form.CourseCode} onChange={(event) => setForm((current) => ({ ...current, CourseCode: event.target.value }))} />
             <Input label="Duration" value={form.CourseDuration} onChange={(event) => setForm((current) => ({ ...current, CourseDuration: event.target.value }))} />
@@ -70,7 +70,7 @@ export default function NewCoursePage() {
                   onChange={(event) => setForm((current) => ({ ...current, CourseDescription: event.target.value }))}
                   rows={5}
                   placeholder="Describe the course content and learning outcomes"
-                  className="w-full rounded-xl border border-black/10 theme-bg-input px-3 py-2.5 theme-text placeholder:theme-text-muted focus:theme-border-primary focus:outline-none"
+                  className="w-full rounded-lg border border-black/10 theme-bg-input px-3 py-2.5 theme-text placeholder:theme-text-muted focus:theme-border-primary focus:outline-none"
                 />
               </label>
             </div>    
