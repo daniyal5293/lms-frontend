@@ -1,6 +1,7 @@
 import { normalizeUser, type ApiErrorData } from "@/src/lib/types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+// The deployed Azure API; set NEXT_PUBLIC_API_BASE_URL (e.g. in .env.local) to use another, such as a local backend
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://tcflmsapiv1-hmcfd9fgfxfafrcc.westus3-01.azurewebsites.net";
 
 export class ApiError extends Error {
   status: number;

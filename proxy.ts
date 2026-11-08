@@ -3,11 +3,14 @@ import type { NextRequest } from "next/server";
 
 const PUBLIC_PATHS = ["/login", "/forgot-password"];
 
+// Open to everyone, signed in or not
+const OPEN_PATHS = ["/apk"];
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hasSession = request.cookies.get("lms_session")?.value === "1";
 
-  if (pathname.startsWith("/_next") || pathname.startsWith("/api") || pathname.includes(".")) {
+  if (pathname.startsWith("/_next") || pathname.startsWith("/api") || pathname.includes(".") || OPEN_PATHS.includes(pathname)) {
     return NextResponse.next();
   }
 
